@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="VideoProcessor.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="AzureVisiionAPIKey" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">b353d85274974737a52b006b92b63611</Value>
+    </Setting>
+    <Setting Name="AccountId" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ddc107fa-2713-4a0d-8ec4-96808a0ada1a</Value>
+    </Setting>
+    <Setting Name="Location" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">"UK South"</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

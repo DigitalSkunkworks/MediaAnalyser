@@ -1,0 +1,21 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ImageProcessor.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="GoogleOCRAPIKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{
+  "type": "service_account",
+  "project_id": "atomic-arbor-200109",
+  "private_key_id": "cbc315a8f96761ca20105742aa1ac9bfaa15d296",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCzqgOyOooJ9zsN\n54QbfWR68Tox/JyQmc/kMfW3izeRtEXWRR6DQh0AujqWZUWO9g4wfl2zs6u+OxbV\nGrbZVrgFWKZrFF7p3FSr/aW2y1rAKWkf4dsvUMyX1Nmdz86Bu5Q7uNjq1LkwoNba\nMa8ccO5kRfzmqDXUEsIidKjVruhGXk1POK4JQU5jeBUfI5n+zoS102LZbDMgOxAU\nRUWkmZ+M4Ly4Da9k6B8iaoFZKdtxksXiQ4DubmJQwDMZ3kwsc5yg9IcrHE02sqAz\nZYarM4NKO3sAVs0hBHgaf2olsnjaSz3H6f0frrprN3wzFavTecBCkU+bWD8jyyQU\nxXAYfw+PAgMBAAECggEAChTgtzgUteFzJWEX5yj+oe12XAa2TGDtKvtos99yg1EP\n2CmxwCDOGtPYZMcTA6Yn/q2gmWxcF0Uej1+74e89TUN/tyOB/fJ4p9wIV/0KPx0z\nwm+8imeoy15Mxc+64UnC1CUXuvmr2KA13jGKh3iI0ASjX9gRiTByR1evf6oca5JX\n+KUkmomBOAEqIgPREGv/7s+UXH48dh8lvvI1pIQvMevyNkPEgXkoAsvHUe7S0mFd\n9jI99iIu4L//lLeRQ6ebG/FjLdDtsnld/kQ7MmoIHAwG8jXesVoGV5W7jbveVPvf\n3WAYb9QPP4bU4mFrCVZJfzk+cd+r8B9yelMw752RsQKBgQDl8rcV4zYErRBrpsld\nr8FukgKdYrtLaSf40YMF5x8nSWcIHbqPvQKE+79PENudmz3JBZfshpFQiXYi9y1C\nhEQQp22TxRt8/UxmJ9dQn9q1eJR20mQTnUgKjGoY0InT93XnK5ssUas6h7SM/MQu\n2f+p+4yILYo+wowq24qvdTfpfwKBgQDIBOQUJpfsFUKVcaxWiT4je9/dgnvLQOZW\n2GTbjVGOxp2U2EgAavmDLqdt5A26UzQkQh3EnvyRfL4wPycaEe+or7z2KzU7DSf1\n64SkVdD9AsEoA21+OV/vKnZq4f2DudoeCHQkGfYPHEZgs1sri4BdG358GZmqfgnr\n+m1gnu1B8QKBgQDLcnOKafzhJj3hATAoM9hwe77UgQY1MlSrULMcBeEKYWdHRwZJ\nJnGUNyiMS94DE9cWhFxmaKkpGHXtecQRlfSix3+rvjkT3Qg7WgSm0Mgwxv6UIpFo\nyT90FcfJLLjFUax/W5VvINLedjLIitsImNgbDPTJh4FJBdf+E0Ag/RT7AQKBgQCf\nRyXI1iLMoPFwyCCQmKGe6BoQ7sNdy8ShC5jlLNfxdkAuMzzC+GzRBenWHHDCG1e+\nN9g0ptZBlLBvAxtEK1xJXAiBj07IQ2W6812g76WIlRTzpCchCNdYQNwjqOqUZv9G\nQz0ZMoM67S0t/CVxu5jwi+BhOpGfrtZ/z+AhvOz6QQKBgAwoIuCzOd2ZCzCzNOXZ\nuvbKXM6ogKZaSQNci8mvFuVahkjNZzgbk43/0J47BXp7sPiNVjTxsiwxlqU9Kz11\n+6/il+lSON9FsYmh8eYORTa3cSkm7Pil+DjqFfSLP5ot9Han1HlNnP1bUp0XhZuK\na/dChnvGBdSCiVUrbFryievg\n-----END PRIVATE KEY-----\n",
+  "client_email": "visionclient@atomic-arbor-200109.iam.gserviceaccount.com",
+  "client_id": "112695872123338303784",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/visionclient%40atomic-arbor-200109.iam.gserviceaccount.com"
+}
+</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
