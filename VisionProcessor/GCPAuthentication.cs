@@ -33,7 +33,7 @@ namespace VisionProcessor
         private static TraceWriter          _log;
         private static GoogleCredential     _credential;
         private static Grpc.Core.Channel    _channel;
-        private static ImageAnnotatorClient _client;
+        private static ImageAnnotatorClient _client { get; set; } = null;
 
         // methods
         /// <summary>
@@ -44,10 +44,23 @@ namespace VisionProcessor
 
         public static ImageAnnotatorClient GetClient( TraceWriter log = null )
         {
-            if ( null == _client )
+            if (null != log)
             {
-                Create();
+                log.Info($"Get Client");
             }
+
+            if (null == _client)
+            {
+                if (null != log)
+                {
+                    Create(log);
+                }
+                else
+                {
+                    throw new Exception("Cannot create an ImageAnnotatorClient without valid log instance.");
+                }
+            }
+
             return _client;
         }
 
@@ -59,17 +72,19 @@ namespace VisionProcessor
         /// <returns>ImageAnnotatorClient</returns>
         private static void Create( TraceWriter log = null )
         {
+            log.Info($"Create Client");
+
             if (_client == null)
             {
                 _log = log;
 
-                _credential = CreateCredential().CreateScoped( ImageAnnotatorClient.DefaultScopes );
+                GCPAuthentication._credential = CreateCredential().CreateScoped( ImageAnnotatorClient.DefaultScopes );
                 _log.Info("Created credential for image annotator client");
 
-                _channel = new Grpc.Core.Channel( ImageAnnotatorClient.DefaultEndpoint.ToString(), _credential.ToChannelCredentials() );
+                GCPAuthentication._channel = new Grpc.Core.Channel( ImageAnnotatorClient.DefaultEndpoint.ToString(), _credential.ToChannelCredentials() );
                 _log.Info("Created channel for image annotator client");
 
-                _client = ImageAnnotatorClient.Create( _channel );
+                GCPAuthentication._client = ImageAnnotatorClient.Create( _channel );
                 _log.Info("Created annotator client");
             }
         }
@@ -102,12 +117,11 @@ namespace VisionProcessor
             }
             catch (InvalidOperationException e)
             {
-                Console.WriteLine("Missing key error: " + e.Message);
+                _log.Error("Missing key error: " + e.Message);
                 return null;
             }
 
             return GenerateStreamFromString( apiKey);
-//            return GenerateStreamFromString( apiKey.ToString());
         }
 
         private static GoogleCredential CreateCredential()

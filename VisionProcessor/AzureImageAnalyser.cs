@@ -72,31 +72,41 @@ namespace VisionProcessor
             [BlobTrigger("vision/{name}", Connection = "functionsfactory")]Stream myBlob,
             [Blob("vision/{name}", FileAccess.ReadWrite, Connection = "functionsfactory")] CloudBlockBlob myBlob2, string name, TraceWriter log, ExecutionContext context)
         {
-            log.Info("Creating configuration");
+            try
+            {
+                log.Info("Creating configuration");
 
-            var builder = new ConfigurationBuilder()
-               .SetBasePath(context.FunctionAppDirectory)
-               .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-               .AddEnvironmentVariables();
+                var builder = new ConfigurationBuilder()
+                   .SetBasePath(context.FunctionAppDirectory)
+                   .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+                   .AddEnvironmentVariables();
 
-           _config = builder.Build();
-            string apiKey = _config["GoogleAPIKey"];
+                _config = builder.Build();
+                string apiKey = _config["GoogleAPIKey"];
 
-            log.Info($"Retrieved GoogleAPIKey: { apiKey }");
+                log.Info($"Retrieved GoogleAPIKey: { apiKey }");
 
-            log.Info($"FileUpload:BlobTrigger processing Name:{name} \n Size: {myBlob.Length} Bytes");
+                log.Info($"FileUpload:BlobTrigger processing Name:{name} \n Size: {myBlob.Length} Bytes");
 
-            log.Info($"FileUpload:BlobTrigger Passing blob Name:{name} to Vision API.");
-            GCVision imageJob = GCVision.Create(log, myBlob2.Uri.ToString(), myBlob2.Name, myBlob2.Name + "_description", myBlob2.Properties.ContentMD5);
-            imageJob.DetectLabels();
+                log.Info($"FileUpload:BlobTrigger Passing blob Name:{name} to Vision API.");
+                GCVision imageJob = GCVision.Create(log, myBlob2.Uri.ToString(), myBlob2.Name, myBlob2.Name + "_description", myBlob2.Properties.ContentMD5);
+                imageJob.DetectLabels();
 
-            log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
+                log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
 
-            // place JSON data in Azure storage queue for further processing
-            await AddToQueue( "functionsfactory", "blob-trigger", imageJob._jsonData, log );
+                // place JSON data in Azure storage queue for further processing
+                await AddToQueue("functionsfactory", "blob-trigger", imageJob._jsonData, log);
+            }
 
+            catch (Exception ex)
+            {
+                log.Info($"Trigger Exception found: {ex.Message}");
+                throw ex;
+            }
             return;
+
         }
+
 
         /// <summary>
         /// Add a message to a queue for processing in some other part of the system.
