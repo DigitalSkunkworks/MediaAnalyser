@@ -104,15 +104,10 @@ namespace VisionProcessor
 
         private static Stream GetGoogleAPIKey()
         {
-            // Get Google  API key
-            //            AppSettingsReader reader;
             string apiKey;
 
             try
             {
-//                reader = new AppSettingsReader();
-//                apiKey = (string)reader.GetValue("GoogleAPIKey", typeof(string));
-//                apiKey = CloudConfigurationManager.GetSetting("GoogleAPIKey");
                 apiKey = AzureImageAnalyser._apiKey;
                 _log.Info($"Retrieved Google API key from application settings:\n { apiKey }.");
             }
