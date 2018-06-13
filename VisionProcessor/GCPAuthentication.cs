@@ -35,6 +35,8 @@ namespace VisionProcessor
         private static Grpc.Core.Channel    _channel;
         private static ImageAnnotatorClient _client { get; set; } = null;
 
+        private static readonly string[] ChannelState = { "Channel is connecting", "Channel is idle", "Channel is ready for work", "Channel has seen a failure that it cannot recover from", "Channel has seen a failure but expects to recover" };
+
         // methods
         /// <summary>
         /// The constructor is declared private so the Create method enforces singleton behaviour.
@@ -83,7 +85,7 @@ namespace VisionProcessor
                 _log.Info("Created credential for image annotator client");
 
                 GCPAuthentication._channel = new Grpc.Core.Channel( ImageAnnotatorClient.DefaultEndpoint.ToString(), _credential.ToChannelCredentials() );
-                _log.Info("Created channel for image annotator client");
+                _log.Info($"Created channel to image annotator client: { _channel.State }: { ChannelState[(int)_channel.State] }");
 
                 GCPAuthentication._client = ImageAnnotatorClient.Create( _channel );
                 _log.Info("Created annotator client");
