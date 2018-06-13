@@ -101,7 +101,7 @@ namespace VisionProcessor
                 if (!_image.Equals(null))
                 {
                     var response = GCPAuthentication.GetClient().DetectLabels(_image);
-
+                    _jsonData = response.ToString();
                     foreach (var annotation in response)
                     {
                         if (annotation.Description != null)
@@ -112,7 +112,7 @@ namespace VisionProcessor
             catch (AnnotateImageException e)
             {
                 AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectLabeles: {response.Error}");
+                _log.Error($"DetectLabels: {response.Error} for image: { _url }");
             }
             return 0;
         }
