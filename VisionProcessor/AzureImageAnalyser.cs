@@ -95,7 +95,7 @@ namespace VisionProcessor
                 log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
 
                 // place JSON data in Azure storage queue for further processing
-                await AddToQueue("functionsfactory", "blob-trigger", imageJob._jsonData, log);
+                await AddToQueue("functionsfactory", "vision", imageJob._jsonData, log);
             }
 
             catch (Exception ex)
@@ -117,8 +117,6 @@ namespace VisionProcessor
         public static async Task AddToQueue(string storageAccountConnectionSetting, string queueName, string messageData, TraceWriter log)
         {
 
-/*
-            COMMENTED OUT FOR DEBUG PURPOSES ONLY - THIS IS ACTIVE CODE
             try
             {
                 // Retrieve storage account from connection string.
@@ -144,7 +142,7 @@ namespace VisionProcessor
             {
                 log.Error($"Exception occurred creating message queue: {queueName} {se.ToString()}");
                 log.Info("Ensure the storage account is specified correctly");
-            }*/
+            }
         }
 
         /// <summary>
