@@ -59,6 +59,7 @@ namespace VisionProcessor
                 {
                     throw new Exception("Cannot create an ImageAnnotatorClient without valid log instance.");
                 }
+                _log.Info($"Created channel for image annotator client { _channel.State }");
             }
 
             return _client;
@@ -113,7 +114,7 @@ namespace VisionProcessor
 //                apiKey = (string)reader.GetValue("GoogleAPIKey", typeof(string));
 //                apiKey = CloudConfigurationManager.GetSetting("GoogleAPIKey");
                 apiKey = AzureImageAnalyser._apiKey;
-                _log.Info("Retrieved Google API key from application settings.");
+                _log.Info($"Retrieved Google API key from application settings:\n { apiKey }.");
             }
             catch (InvalidOperationException e)
             {

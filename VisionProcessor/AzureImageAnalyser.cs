@@ -82,13 +82,13 @@ namespace VisionProcessor
                    .AddEnvironmentVariables();
 
                 _config = builder.Build();
-                string apiKey = _config["GoogleAPIKey"];
+                AzureImageAnalyser._apiKey = _config["GoogleAPIKey"];
 
-                log.Info($"Retrieved GoogleAPIKey: { apiKey }");
+                log.Info($"Retrieved GoogleAPIKey: { _apiKey }");
 
                 log.Info($"FileUpload:BlobTrigger processing Name:{name} \n Size: {myBlob.Length} Bytes");
 
-                log.Info($"FileUpload:BlobTrigger Passing blob Name:{name} to Vision API.");
+                log.Info($"FileUpload:BlobTrigger Passing blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
                 GCVision imageJob = GCVision.Create(log, myBlob2.Uri.ToString(), myBlob2.Name, myBlob2.Name + "_description", myBlob2.Properties.ContentMD5);
                 imageJob.DetectLabels();
 

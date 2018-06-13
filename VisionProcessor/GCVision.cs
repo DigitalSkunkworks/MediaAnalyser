@@ -48,6 +48,7 @@ namespace VisionProcessor
             : base(imageURL, name, description, hash)
         {
             _log = log;
+            _image = ImageFromUri( imageURL );
         }
 
         public static GCVision Create(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "" )
@@ -58,6 +59,10 @@ namespace VisionProcessor
             //            using (var stream = new FileStream(JsonKeypath, FileMode.Open, FileAccess.Read))
         }
 
+        static Image ImageFromUri(string uri)
+        {
+            return Image.FromUri(uri);
+        }
 
         public override void AnalyseFile(string filePath)
         {
@@ -71,7 +76,7 @@ namespace VisionProcessor
                 return;
             }
 
-            _log.Info("Uploading...");
+            _log.Info($"Analysing URL: { _url.ToString() }");
             DetectLabels();
             DetectFaces();
             DetectCropHint();
@@ -82,7 +87,7 @@ namespace VisionProcessor
             DetectSafeSearch();
             DetectText();
             DetectWeb();
-            _log.Info($"Uploaded...: {_jsonData}");
+            _log.Info($"Analysis results: {_jsonData}");
         }
 
         /// <summary>
