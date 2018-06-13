@@ -20,6 +20,7 @@ namespace VisionProcessor
         protected internal string _jsonData { get; set; } = "";
 
         // methods
+
         public ImageAnalyser( string url, string name="", string description="", string hash="" )
         {
             _url = url;

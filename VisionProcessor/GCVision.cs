@@ -78,34 +78,34 @@ namespace VisionProcessor
 
             _log.Info($"Analysing URL: { _url.ToString() }");
             DetectLabels();
-            DetectFaces();
-            DetectCropHint();
             DetectDocText();
             DetectLandmarks();
             DetectLogos();
-            DetectProperties();
-            DetectSafeSearch();
-            DetectText();
             DetectWeb();
             _log.Info($"Analysis results: {_jsonData}");
         }
 
         /// <summary>
         /// 
+        /// Retains description and score.  
+        /// Deletes mid and topicality
         /// </summary>
         /// <returns></returns>
-        public object DetectLabels()
+        private object DetectLabels()
         {
             try
             {
                 if (!_image.Equals(null))
                 {
                     var response = GCPAuthentication.GetClient().DetectLabels(_image);
-                    _jsonData = response.ToString();
+                    _jsonData += response.ToString();
+
                     foreach (var annotation in response)
                     {
                         if (annotation.Description != null)
+                        {
                             _log.Info(annotation.Description);
+                        }
                     }
                 }
             }
@@ -128,15 +128,7 @@ namespace VisionProcessor
                 if (!_image.Equals(null))
                 {
                     var response = GCPAuthentication.GetClient().DetectFaces(_image);
-                    int count = 1;
-                    foreach (var faceAnnotation in response)
-                    {
-                        _log.Info($"Face {count++}:");
-                        _log.Info($"  Joy: { faceAnnotation.JoyLikelihood}");
-                        _log.Info($"  Anger: { faceAnnotation.AngerLikelihood }");
-                        _log.Info($"  Sorrow: { faceAnnotation.SorrowLikelihood }");
-                        _log.Info($"  Surprise: { faceAnnotation.SurpriseLikelihood }");
-                    }
+                    _jsonData += response.ToString();
                 }
             }
             catch (AnnotateImageException e)
@@ -157,11 +149,7 @@ namespace VisionProcessor
             try
             {
                 var response = GCPAuthentication.GetClient().DetectSafeSearch(_image);
-
-                _log.Info($"Adult: { response.Adult.ToString() }");
-                _log.Info($"Spoof: { response.Spoof.ToString() }");
-                _log.Info($"Medical: { response.Medical.ToString() }");
-                _log.Info($"Violence: { response.Violence.ToString() }");
+                _jsonData += response.ToString();
             }
             catch (AnnotateImageException e)
             {
@@ -178,13 +166,18 @@ namespace VisionProcessor
         /// <returns></returns>
         private object DetectProperties()
         {
-            var response = GCPAuthentication.GetClient().DetectImageProperties(_image);
-            string header = "Red\tGreen\tBlue\tAlpha\n";
-            foreach (var color in response.DominantColors.Colors)
+            try
             {
-                Console.Write(header);
-                header = "";
-                _log.Info($"{ color.Color.Red }\t{ color.Color.Green }\t{ color.Color.Blue }\t{ color.Color.Alpha }");
+                if (!_image.Equals(null))
+                {
+                    var response = GCPAuthentication.GetClient().DetectImageProperties(_image);
+                    _jsonData += response.ToString();
+                }
+            }
+            catch (AnnotateImageException e)
+            {
+                AnnotateImageResponse response = e.Response;
+                _log.Error($"DetectProperties: {response.Error} for image: { _url }");
             }
             return 0;
         }
@@ -195,12 +188,17 @@ namespace VisionProcessor
         /// <returns></returns>
         private object DetectLandmarks()
         {
-            var response = GCPAuthentication.GetClient().DetectLandmarks(_image);
-            foreach (var annotation in response)
+            try
             {
-                if (annotation.Description != null)
-                    _log.Info(annotation.Description);
+                var response = GCPAuthentication.GetClient().DetectLandmarks(_image);
+                _jsonData += response.ToString();
             }
+            catch (AnnotateImageException e)
+            {
+                AnnotateImageResponse response = e.Response;
+                _log.Error($"DetectLandmarks: {response.Error} for image: { _url }");
+            }
+
             return 0;
         }
 
@@ -210,12 +208,17 @@ namespace VisionProcessor
         /// <returns></returns>
         private object DetectText()
         {
-            var response = GCPAuthentication.GetClient().DetectText(_image);
-            foreach (var annotation in response)
+            try
             {
-                if (annotation.Description != null)
-                    _log.Info(annotation.Description);
+                var response = GCPAuthentication.GetClient().DetectText(_image);
+                _jsonData += response.ToString();
             }
+            catch (AnnotateImageException e)
+            {
+                AnnotateImageResponse response = e.Response;
+                _log.Error($"DetectText: {response.Error} for image: { _url }");
+            }
+            
             return 0;
         }
 
@@ -225,12 +228,17 @@ namespace VisionProcessor
         /// <returns></returns>
         private object DetectLogos()
         {
-            var response = GCPAuthentication.GetClient().DetectLogos(_image);
-            foreach (var annotation in response)
+            try
             {
-                if (annotation.Description != null)
-                    _log.Info(annotation.Description);
+                var response = GCPAuthentication.GetClient().DetectLogos(_image);
+                _jsonData += response.ToString();
             }
+            catch (AnnotateImageException e)
+            {
+                AnnotateImageResponse response = e.Response;
+                _log.Error($"DetectLogos: {response.Error} for image: { _url }");
+            }
+
             return 0;
         }
 
@@ -240,17 +248,16 @@ namespace VisionProcessor
         /// <returns></returns>
         private object DetectCropHint()
         {
-            CropHintsAnnotation annotation = GCPAuthentication.GetClient().DetectCropHints(_image);
-            foreach (CropHint hint in annotation.CropHints)
+            try
             {
-                _log.Info($"Confidence: { hint.Confidence }");
-                _log.Info($"ImportanceFraction: { hint.ImportanceFraction }");
-                _log.Info("Bounding Polygon:");
-                foreach (Vertex vertex in hint.BoundingPoly.Vertices)
-                {
-                    _log.Info($"\tX:\t{vertex.X}\tY:\t{vertex.Y}");
-                }
+                CropHintsAnnotation annotation = GCPAuthentication.GetClient().DetectCropHints(_image);
             }
+            catch (AnnotateImageException e)
+            {
+                AnnotateImageResponse response = e.Response;
+                _log.Error($"DetectLogos: {response.Error} for image: { _url }");
+            }
+
             return 0;
         }
 
@@ -260,23 +267,16 @@ namespace VisionProcessor
         /// <returns></returns>
         private object DetectWeb()
         {
-            WebDetection annotation = GCPAuthentication.GetClient().DetectWebInformation(_image);
-            foreach (var matchingImage in annotation.FullMatchingImages)
+            try
             {
-                _log.Info($"MatchingImage Score:\t{ matchingImage.Score }\tURL:\t{ matchingImage.Url }");
+                WebDetection annotation = GCPAuthentication.GetClient().DetectWebInformation(_image);
             }
-            foreach (var page in annotation.PagesWithMatchingImages)
+            catch (AnnotateImageException e)
             {
-                _log.Info($"PageWithMatchingImage Score:\t{page.Score}\tURL:\t{page.Url}");
+                AnnotateImageResponse response = e.Response;
+                _log.Error($"DetectWebInformation: {response.Error} for image: { _url }");
             }
-            foreach (var matchingImage in annotation.PartialMatchingImages)
-            {
-                _log.Info($"PartialMatchingImage Score:\t{ matchingImage.Score }\tURL:\t{ matchingImage.Url }");
-            }
-            foreach (var entity in annotation.WebEntities)
-            {
-                _log.Info($"WebEntity Score:\t{ entity.Score }\tId:\t{ entity.EntityId }\tDescription:\t{ entity.Description }");
-            }
+
             return 0;
         }
 
@@ -286,17 +286,17 @@ namespace VisionProcessor
         /// <returns></returns>
         private object DetectDocText()
         {
-            var response = GCPAuthentication.GetClient().DetectDocumentText(_image);
-            foreach (var page in response.Pages)
+            try
             {
-                foreach (var block in page.Blocks)
-                {
-                    foreach (var paragraph in block.Paragraphs)
-                    {
-                        _log.Info(string.Join("\n", paragraph.Words));
-                    }
-                }
+                var response = GCPAuthentication.GetClient().DetectDocumentText(_image);
+                _jsonData += response.ToString();
             }
+            catch (AnnotateImageException e)
+            {
+                AnnotateImageResponse response = e.Response;
+                _log.Error($"DetectDocumentText: {response.Error} for image: { _url }");
+            }
+
             return 0;
         }
     }

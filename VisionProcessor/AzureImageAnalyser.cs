@@ -90,7 +90,7 @@ namespace VisionProcessor
 
                 log.Info($"FileUpload:BlobTrigger Passing blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
                 GCVision imageJob = GCVision.Create(log, myBlob2.Uri.ToString(), myBlob2.Name, myBlob2.Name + "_description", myBlob2.Properties.ContentMD5);
-                imageJob.DetectLabels();
+                imageJob.AnalyseURL();
 
                 log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
 
@@ -114,6 +114,7 @@ namespace VisionProcessor
         /// placed in the application configuration file.
         /// </summary>
         /// <param name="ocrResult"></param>
+
         public static async Task AddToQueue(string storageAccountConnectionSetting, string queueName, string messageData, TraceWriter log)
         {
 
