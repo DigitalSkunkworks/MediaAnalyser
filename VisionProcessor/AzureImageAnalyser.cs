@@ -90,7 +90,7 @@ namespace VisionProcessor
 
                 log.Info($"FileUpload:BlobTrigger Passing blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
                 GCVision imageJob = GCVision.Create(log, myBlob2.Uri.ToString(), myBlob2.Name, myBlob2.Name + "_description", myBlob2.Properties.ContentMD5);
-                imageJob.AnalyseURL();
+                imageJob.DetectAll();
 
                 log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
 

@@ -40,28 +40,95 @@ namespace VisionProcessor
     public class GCVision : ImageAnalyser
     {
         // attributes
+        public enum AnalysisMethod { DETECT_FACES = 0, DETECT_LANDMARKS, DETECT_LABELS, DETECT_SAFESEARCH, DETECT_PROPERTIES, DETECT_TEXT, DETECT_LOGOS, DETECT_CROPHINT, DETECT_WEB, DETECT_DOCTEXT, DETECT_ALL };
+
         TraceWriter _log = null;
         public Image _image { get; set; }
 
         // methods
-        protected internal GCVision( TraceWriter log, string imageURL, string name = "", string description = "", string hash = "" )
+        protected internal GCVision(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "")
             : base(imageURL, name, description, hash)
         {
             _log = log;
-            _image = ImageFromUri( imageURL );
+            _image = ImageFromUri(imageURL);
         }
 
-        public static GCVision Create(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "" )
+        public static GCVision Create(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "")
         {
-            GCPAuthentication.GetClient( log );
+            GCPAuthentication.GetClient(log);
 
-            return new GCVision( log, imageURL, name, description, hash );
-            //            using (var stream = new FileStream(JsonKeypath, FileMode.Open, FileAccess.Read))
+            return new GCVision(log, imageURL, name, description, hash);
         }
 
         static Image ImageFromUri(string uri)
         {
             return Image.FromUri(uri);
+        }
+
+        public string ApplyAnalysis(AnalysisMethod detectionType)
+        {
+            string jsonData = "";
+            var response = (dynamic)null;
+
+            try
+            {
+                if (String.IsNullOrEmpty(_url.ToString()))
+                {
+                    _log.Info($"URL: {_url.ToString()} is empty.");
+                    return jsonData;
+                }
+
+                switch (detectionType)
+                {
+                    case AnalysisMethod.DETECT_FACES:
+                        response = GCPAuthentication.GetClient().DetectFaces(_image);
+                        break;
+                    case AnalysisMethod.DETECT_LANDMARKS:
+                        response = GCPAuthentication.GetClient().DetectLandmarks(_image);
+                        break;
+                    case AnalysisMethod.DETECT_LABELS:
+                        response = GCPAuthentication.GetClient().DetectLabels(_image);
+                        break;
+                    case AnalysisMethod.DETECT_SAFESEARCH:
+                        response = GCPAuthentication.GetClient().DetectSafeSearch(_image);
+                        break;
+                    case AnalysisMethod.DETECT_PROPERTIES:
+                        response = GCPAuthentication.GetClient().DetectImageProperties(_image);
+                        break;
+                    case AnalysisMethod.DETECT_TEXT:
+                        response = GCPAuthentication.GetClient().DetectText(_image);
+                        break;
+                    case AnalysisMethod.DETECT_LOGOS:
+                        response = GCPAuthentication.GetClient().DetectLogos(_image);
+                        break;
+                    case AnalysisMethod.DETECT_CROPHINT:
+                        response = GCPAuthentication.GetClient().DetectCropHints(_image);
+                        break;
+                    case AnalysisMethod.DETECT_WEB:
+                        response = GCPAuthentication.GetClient().DetectWebInformation(_image);
+                        break;
+                    case AnalysisMethod.DETECT_DOCTEXT:
+                        response = GCPAuthentication.GetClient().DetectDocumentText(_image);
+                        break;
+                    case AnalysisMethod.DETECT_ALL:
+                        ApplyAnalysis(AnalysisMethod.DETECT_LABELS);
+                        ApplyAnalysis(AnalysisMethod.DETECT_DOCTEXT);
+                        ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS);
+                        ApplyAnalysis(AnalysisMethod.DETECT_LOGOS);
+                        ApplyAnalysis(AnalysisMethod.DETECT_WEB);
+                        break;
+                    default:
+                        _log.Error($"Unrecognised detection method: { detectionType } ");
+                        break;
+                }
+                _jsonData += response.ToString();
+            }
+            catch (AnnotateImageException e)
+            {
+                _log.Error($"{ e.Response.Error } for image: { _url }");
+            }
+
+            return jsonData;
         }
 
         public override void AnalyseFile(string filePath)
@@ -70,19 +137,12 @@ namespace VisionProcessor
 
         public override void AnalyseURL()
         {
-            if (String.IsNullOrEmpty(_url.ToString()))
-            {
-                _log.Info($"URL: {_url.ToString()} is empty.");
-                return;
-            }
+        }
 
-            _log.Info($"Analysing URL: { _url.ToString() }");
-            DetectLabels();
-            DetectDocText();
-            DetectLandmarks();
-            DetectLogos();
-            DetectWeb();
-            _log.Info($"Analysis results: {_jsonData}");
+        public string DetectAll()
+        {
+            ApplyAnalysis(AnalysisMethod.DETECT_ALL);
+            return _jsonData;
         }
 
         /// <summary>
@@ -91,213 +151,100 @@ namespace VisionProcessor
         /// Deletes mid and topicality
         /// </summary>
         /// <returns></returns>
-        private object DetectLabels()
+        public string DetectLabels()
         {
-            try
-            {
-                if (!_image.Equals(null))
-                {
-                    var response = GCPAuthentication.GetClient().DetectLabels(_image);
-                    _jsonData += response.ToString();
-
-                    foreach (var annotation in response)
-                    {
-                        if (annotation.Description != null)
-                        {
-                            _log.Info(annotation.Description);
-                        }
-                    }
-                }
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectLabels: {response.Error} for image: { _url }");
-            }
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_LABELS);
+            return _jsonData;
         }
 
         /// <summary>
         /// Returns the number of faces, the expressions and position in an image.
         /// </summary>
         /// <returns></returns>
-        private object DetectFaces()
+        public string DetectFaces()
         {
-            try
-            {
-                if (!_image.Equals(null))
-                {
-                    var response = GCPAuthentication.GetClient().DetectFaces(_image);
-                    _jsonData += response.ToString();
-                }
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectFaces: {response.Error}");
-            }
-
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_FACES);
+            return _jsonData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private object DetectSafeSearch()
+        public string DetectSafeSearch()
         {
-            try
-            {
-                var response = GCPAuthentication.GetClient().DetectSafeSearch(_image);
-                _jsonData += response.ToString();
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectSafeSearch: {response.Error}");
-            }
-
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_SAFESEARCH);
+            return _jsonData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private object DetectProperties()
+        public string DetectProperties()
         {
-            try
-            {
-                if (!_image.Equals(null))
-                {
-                    var response = GCPAuthentication.GetClient().DetectImageProperties(_image);
-                    _jsonData += response.ToString();
-                }
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectProperties: {response.Error} for image: { _url }");
-            }
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_PROPERTIES);
+            return _jsonData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private object DetectLandmarks()
+        public string DetectLandmarks()
         {
-            try
-            {
-                var response = GCPAuthentication.GetClient().DetectLandmarks(_image);
-                _jsonData += response.ToString();
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectLandmarks: {response.Error} for image: { _url }");
-            }
-
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS);
+            return _jsonData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private object DetectText()
+        public string DetectText()
         {
-            try
-            {
-                var response = GCPAuthentication.GetClient().DetectText(_image);
-                _jsonData += response.ToString();
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectText: {response.Error} for image: { _url }");
-            }
-            
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_TEXT);
+            return _jsonData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private object DetectLogos()
+        public string DetectLogos()
         {
-            try
-            {
-                var response = GCPAuthentication.GetClient().DetectLogos(_image);
-                _jsonData += response.ToString();
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectLogos: {response.Error} for image: { _url }");
-            }
-
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_LOGOS);
+            return _jsonData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private object DetectCropHint()
+        public string DetectCropHint()
         {
-            try
-            {
-                CropHintsAnnotation annotation = GCPAuthentication.GetClient().DetectCropHints(_image);
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectLogos: {response.Error} for image: { _url }");
-            }
-
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_CROPHINT);
+            return _jsonData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private object DetectWeb()
+        public string DetectWeb()
         {
-            try
-            {
-                WebDetection annotation = GCPAuthentication.GetClient().DetectWebInformation(_image);
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectWebInformation: {response.Error} for image: { _url }");
-            }
-
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_WEB);
+            return _jsonData;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private object DetectDocText()
+        public string DetectDocText()
         {
-            try
-            {
-                var response = GCPAuthentication.GetClient().DetectDocumentText(_image);
-                _jsonData += response.ToString();
-            }
-            catch (AnnotateImageException e)
-            {
-                AnnotateImageResponse response = e.Response;
-                _log.Error($"DetectDocumentText: {response.Error} for image: { _url }");
-            }
-
-            return 0;
+            ApplyAnalysis(AnalysisMethod.DETECT_DOCTEXT);
+            return _jsonData;
         }
     }
 }
