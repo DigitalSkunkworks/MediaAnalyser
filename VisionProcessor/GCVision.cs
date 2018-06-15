@@ -65,9 +65,8 @@ namespace VisionProcessor
             return Image.FromUri(uri);
         }
 
-        public string ApplyAnalysis(AnalysisMethod detectionType)
+        public dynamic ApplyAnalysis(AnalysisMethod detectionType)
         {
-            string jsonData = "";
             var response = (dynamic)null;
 
             try
@@ -75,7 +74,7 @@ namespace VisionProcessor
                 if (String.IsNullOrEmpty(_url.ToString()))
                 {
                     _log.Info($"URL: {_url.ToString()} is empty.");
-                    return jsonData;
+                    return response;
                 }
 
                 switch (detectionType)
@@ -110,25 +109,17 @@ namespace VisionProcessor
                     case AnalysisMethod.DETECT_DOCTEXT:
                         response = GCPAuthentication.GetClient().DetectDocumentText(_image);
                         break;
-                    case AnalysisMethod.DETECT_ALL:
-                        ApplyAnalysis(AnalysisMethod.DETECT_LABELS);
-                        ApplyAnalysis(AnalysisMethod.DETECT_DOCTEXT);
-                        ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS);
-                        ApplyAnalysis(AnalysisMethod.DETECT_LOGOS);
-                        ApplyAnalysis(AnalysisMethod.DETECT_WEB);
-                        break;
                     default:
                         _log.Error($"Unrecognised detection method: { detectionType } ");
                         break;
                 }
-                _jsonData += response.ToString();
             }
             catch (AnnotateImageException e)
             {
                 _log.Error($"{ e.Response.Error } for image: { _url }");
             }
 
-            return jsonData;
+            return response;
         }
 
         public override void AnalyseFile(string filePath)
@@ -139,10 +130,29 @@ namespace VisionProcessor
         {
         }
 
+        private IReadOnlyCollection<EntityAnnotation> TrimEntityAnnotation( IReadOnlyCollection<EntityAnnotation> response )
+        {
+            if (null != response)
+            {
+                foreach (EntityAnnotation annotation in response)
+                {
+                    annotation.Properties.Remove("mid");
+                    annotation.Properties.Remove("Topicality");
+                }
+            }
+
+            return response;
+        }
+
         public string DetectAll()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_ALL);
-            return _jsonData;
+            string jsonData = "";
+            jsonData += TrimEntityAnnotation( ApplyAnalysis( AnalysisMethod.DETECT_LABELS )).ToString();     // IReadOnlyCollection<EntityAnnotation>
+            jsonData += ApplyAnalysis( AnalysisMethod.DETECT_DOCTEXT ).ToString();                           // TextAnnotation
+            jsonData += TrimEntityAnnotation( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS )).ToString();                         // IReadOnlyCollection<EntityAnnotation>
+            jsonData += TrimEntityAnnotation( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS )).ToString();                             // IReadOnlyCollection<EntityAnnotation>
+            jsonData += ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString();                               // WebDetection
+            return jsonData;
         }
 
         /// <summary>
@@ -153,8 +163,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectLabels()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_LABELS);
-            return _jsonData;
+            return _jsonData = TrimEntityAnnotation( ApplyAnalysis( AnalysisMethod.DETECT_LABELS )).ToString();
         }
 
         /// <summary>
@@ -163,8 +172,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectFaces()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_FACES);
-            return _jsonData;
+            return _jsonData = ApplyAnalysis(AnalysisMethod.DETECT_FACES).ToString();
         }
 
         /// <summary>
@@ -173,8 +181,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectSafeSearch()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_SAFESEARCH);
-            return _jsonData;
+            return _jsonData = ApplyAnalysis(AnalysisMethod.DETECT_SAFESEARCH);
         }
 
         /// <summary>
@@ -183,8 +190,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectProperties()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_PROPERTIES);
-            return _jsonData;
+            return _jsonData = ApplyAnalysis(AnalysisMethod.DETECT_PROPERTIES).ToString();
         }
 
         /// <summary>
@@ -193,8 +199,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectLandmarks()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS);
-            return _jsonData;
+            return _jsonData = TrimEntityAnnotation( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS )).ToString();                         // IReadOnlyCollection<EntityAnnotation>
         }
 
         /// <summary>
@@ -203,8 +208,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectText()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_TEXT);
-            return _jsonData;
+            return _jsonData = ApplyAnalysis(AnalysisMethod.DETECT_TEXT).ToString();
         }
 
         /// <summary>
@@ -213,8 +217,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectLogos()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_LOGOS);
-            return _jsonData;
+            return _jsonData = TrimEntityAnnotation( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS )).ToString();                             // IReadOnlyCollection<EntityAnnotation>
         }
 
         /// <summary>
@@ -223,8 +226,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectCropHint()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_CROPHINT);
-            return _jsonData;
+            return _jsonData = ApplyAnalysis(AnalysisMethod.DETECT_CROPHINT).ToString();
         }
 
         /// <summary>
@@ -233,8 +235,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectWeb()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_WEB);
-            return _jsonData;
+            return _jsonData = ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString();                               // WebDetection
         }
 
         /// <summary>
@@ -243,8 +244,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectDocText()
         {
-            ApplyAnalysis(AnalysisMethod.DETECT_DOCTEXT);
-            return _jsonData;
+            return _jsonData = ApplyAnalysis( AnalysisMethod.DETECT_DOCTEXT ).ToString();                           // TextAnnotation
         }
     }
 }
