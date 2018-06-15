@@ -173,13 +173,13 @@ namespace VisionProcessor
 
         public string DetectAll()
         {
-            string jsonData = "";
-            jsonData += TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString());     // IReadOnlyCollection<EntityAnnotation>
-            jsonData += ApplyAnalysis( AnalysisMethod.DETECT_DOCTEXT ).ToString();                           // TextAnnotation
-            jsonData += TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString());                         // IReadOnlyCollection<EntityAnnotation>
-            jsonData += TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS ).ToString());                             // IReadOnlyCollection<EntityAnnotation>
-            jsonData += ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString();                               // WebDetection
-            return jsonData;
+            _jsonData = "";
+            _jsonData += TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString());     // IReadOnlyCollection<EntityAnnotation>
+            _jsonData += ApplyAnalysis( AnalysisMethod.DETECT_DOCTEXT ).ToString();                           // TextAnnotation
+            _jsonData += TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString());                         // IReadOnlyCollection<EntityAnnotation>
+            _jsonData += TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS ).ToString());                             // IReadOnlyCollection<EntityAnnotation>
+            _jsonData += ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString();                               // WebDetection
+            return _jsonData;
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectLabels()
         {
-            return _jsonData = TrimEntityAnnotation( ApplyAnalysis( AnalysisMethod.DETECT_LABELS )).ToString();
+            return _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString());
         }
 
         /// <summary>
@@ -226,7 +226,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectLandmarks()
         {
-            return _jsonData = TrimEntityAnnotation( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS )).ToString();                         // IReadOnlyCollection<EntityAnnotation>
+            return _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString());                         // IReadOnlyCollection<EntityAnnotation>
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace VisionProcessor
         /// <returns></returns>
         public string DetectLogos()
         {
-            return _jsonData = TrimEntityAnnotation( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS )).ToString();                             // IReadOnlyCollection<EntityAnnotation>
+            return _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS ).ToString());                             // IReadOnlyCollection<EntityAnnotation>
         }
 
         /// <summary>
