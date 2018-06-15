@@ -60,6 +60,33 @@ namespace VisionProcessor
             return new GCVision(log, imageURL, name, description, hash);
         }
 
+        private static string TrimJSON(string rawJSON)
+        {
+            JsonTextReader reader = new JsonTextReader(new StringReader(rawJSON));
+
+            StringBuilder sb = new StringBuilder();
+            StringWriter sw = new StringWriter(sb);
+            JsonWriter writer = new JsonTextWriter(sw);
+
+            writer.Formatting = Formatting.Indented;
+            writer.WriteStartObject();
+
+            while (reader.Read())
+            {
+                if ((reader.TokenType == JsonToken.PropertyName) &&
+                    ((string.Equals("mid", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase)) ||
+                    (string.Equals("Topicality", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase))))
+                {
+                    // Add property name and value to output JSON.
+                    writer.WritePropertyName(reader.Value.ToString());
+                    reader.Read();
+                    writer.WriteValue(reader.Value);
+                }
+            }
+            writer.WriteEndObject();
+            return sw.ToString();
+        }
+
         static Image ImageFromUri(string uri)
         {
             return Image.FromUri(uri);
@@ -136,8 +163,8 @@ namespace VisionProcessor
             {
                 foreach (EntityAnnotation annotation in response)
                 {
-                    annotation.Properties.Remove("mid");
-                    annotation.Properties.Remove("Topicality");
+ //                   annotation.Properties.Remove("mid");
+ //                   annotation.Properties.Remove("Topicality");
                 }
             }
 
@@ -147,10 +174,10 @@ namespace VisionProcessor
         public string DetectAll()
         {
             string jsonData = "";
-            jsonData += TrimEntityAnnotation( ApplyAnalysis( AnalysisMethod.DETECT_LABELS )).ToString();     // IReadOnlyCollection<EntityAnnotation>
+            jsonData += TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString());     // IReadOnlyCollection<EntityAnnotation>
             jsonData += ApplyAnalysis( AnalysisMethod.DETECT_DOCTEXT ).ToString();                           // TextAnnotation
-            jsonData += TrimEntityAnnotation( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS )).ToString();                         // IReadOnlyCollection<EntityAnnotation>
-            jsonData += TrimEntityAnnotation( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS )).ToString();                             // IReadOnlyCollection<EntityAnnotation>
+            jsonData += TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString());                         // IReadOnlyCollection<EntityAnnotation>
+            jsonData += TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS ).ToString());                             // IReadOnlyCollection<EntityAnnotation>
             jsonData += ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString();                               // WebDetection
             return jsonData;
         }

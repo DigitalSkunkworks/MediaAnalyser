@@ -146,40 +146,5 @@ namespace VisionProcessor
             }
         }
 
-        /// <summary>
-        /// Extract only elements of interest from OCR JSON data.
-        /// Currently this is the description and locale.
-        /// This needs to be rewritten to permit a configurable list of values 
-        /// to be pulled in from a configuration file.  Also the matching loop will
-        /// need amending to fit this approach.
-        /// </summary>
-        /// <param name="rawJSON"></param>
-        /// <returns></returns>
-        private static string TrimJson(string rawJSON)
-        {
-            JsonTextReader reader = new JsonTextReader(new StringReader(rawJSON));
-
-            StringBuilder sb = new StringBuilder();
-            StringWriter sw = new StringWriter(sb);
-            JsonWriter writer = new JsonTextWriter(sw);
-
-            writer.Formatting = Formatting.Indented;
-            writer.WriteStartObject();
-
-            while (reader.Read())
-            {
-                if ((reader.TokenType == JsonToken.PropertyName) &&
-                    ((string.Equals("description", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase)) ||
-                    (string.Equals("locale", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase))))
-                {
-                    // Add property name and value to output JSON.
-                    writer.WritePropertyName(reader.Value.ToString());
-                    reader.Read();
-                    writer.WriteValue(reader.Value);
-                }
-            }
-            writer.WriteEndObject();
-            return sw.ToString();
-        }
     }
 }
