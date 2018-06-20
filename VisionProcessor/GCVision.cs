@@ -26,6 +26,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 using Google.Cloud.Vision.V1;
 using Google.Apis.Auth.OAuth2;
@@ -46,21 +47,39 @@ namespace VisionProcessor
         public Image _image { get; set; }
 
         // methods
-        protected internal GCVision(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "")
-            : base(imageURL, name, description, hash)
+        protected internal GCVision(TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
+            : base( etag, imageURL, hash, name, description )
         {
             _log = log;
             _image = ImageFromUri(imageURL);
         }
 
-        public static GCVision Create(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "")
+        public static GCVision Create( TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
         {
-            GCPAuthentication.GetClient(log);
+            GCPAuthentication.GetClient( log );
 
-            return new GCVision(log, imageURL, name, description, hash);
+            return new GCVision( log, etag, imageURL, hash, name, description );
         }
 
-        private static string TrimJSON(string rawJSON)
+
+
+    /// <summary>
+    /// Parent Meta data
+    ///  Blob URI
+    ///  Blob Date submitted
+    ///  API Date processed
+    ///  UID
+    ///  Functions: func1, func2, ...
+    ///  }
+    ///  func1 payload  data
+    ///  func2 payload data
+    ///  func3 payload  data
+    ///  func4 payload data
+    ///  func5 payload  data(edited)
+    /// </summary>
+    /// <param name="rawJSON"></param>
+    /// <returns></returns>
+    private static string TrimJSON(string rawJSON)
         {
             JsonTextReader reader = new JsonTextReader(new StringReader(rawJSON));
 
@@ -73,14 +92,20 @@ namespace VisionProcessor
 
             while (reader.Read())
             {
-                if ((reader.TokenType == JsonToken.PropertyName) &&
-                    ((string.Equals("mid", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase)) ||
-                    (string.Equals("Topicality", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase))))
+                if ( reader.TokenType == JsonToken.PropertyName )
                 {
-                    // Add property name and value to output JSON.
-                    writer.WritePropertyName(reader.Value.ToString());
-                    reader.Read();
-                    writer.WriteValue(reader.Value);
+                    if (((string.Equals("mid", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase)) ||
+                        (string.Equals("Topicality", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase))))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        // Add property name and value to output JSON.
+                        writer.WritePropertyName(reader.Value.ToString());
+                        reader.Read();
+                        writer.WriteValue(reader.Value);
+                    }
                 }
             }
             writer.WriteEndObject();
@@ -157,29 +182,22 @@ namespace VisionProcessor
         {
         }
 
-        private IReadOnlyCollection<EntityAnnotation> TrimEntityAnnotation( IReadOnlyCollection<EntityAnnotation> response )
+        public async void DetectAll()
         {
-            if (null != response)
-            {
-                foreach (EntityAnnotation annotation in response)
-                {
- //                   annotation.Properties.Remove("mid");
- //                   annotation.Properties.Remove("Topicality");
-                }
-            }
+            _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString());        // IReadOnlyCollection<EntityAnnotation>
+            await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
-            return response;
-        }
+            _jsonData = ApplyAnalysis(AnalysisMethod.DETECT_DOCTEXT).Text;                          // TextAnnotation
+            await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
-        public string DetectAll()
-        {
-            _jsonData = "";
-            _jsonData += TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString());     // IReadOnlyCollection<EntityAnnotation>
-            _jsonData += ApplyAnalysis( AnalysisMethod.DETECT_DOCTEXT ).ToString();                           // TextAnnotation
-            _jsonData += TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString());                         // IReadOnlyCollection<EntityAnnotation>
-            _jsonData += TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS ).ToString());                             // IReadOnlyCollection<EntityAnnotation>
-            _jsonData += ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString();                               // WebDetection
-            return _jsonData;
+            _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString());      // IReadOnlyCollection<EntityAnnotation>
+            await AzureImageAnalyser.AddToQueue( _jsonData, _log);
+
+            _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS ).ToString());          // IReadOnlyCollection<EntityAnnotation>
+            await AzureImageAnalyser.AddToQueue( _jsonData, _log);
+
+            _jsonData = ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString();                      // WebDetection
+            await AzureImageAnalyser.AddToQueue( _jsonData, _log);
         }
 
         /// <summary>

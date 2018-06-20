@@ -13,6 +13,7 @@ namespace VisionProcessor
         protected internal enum status { PROCESS_SUCCESS=0, PROCESS_FAIL, URL_NOT_FOUND };
 
         // attributes
+        protected internal string _uid { get; set; }  = "";
         protected internal string _url { get; set; }  = "";
         protected internal string _name { get; set; } = "";
         protected internal string _description { get; set; }  = "";
@@ -21,12 +22,13 @@ namespace VisionProcessor
 
         // methods
 
-        public ImageAnalyser( string url, string name="", string description="", string hash="" )
+        public ImageAnalyser( string uid, string url, string hash, string name="", string description="" )
         {
+            _uid = uid;
             _url = url;
+            _hash = hash;
             _name = name;
             _description = description;
-            _url = url;
         }
 
         abstract public void AnalyseFile(string resourceFilePath);

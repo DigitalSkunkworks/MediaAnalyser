@@ -42,16 +42,18 @@ namespace VisionProcessor
         protected internal string _jsonData { get; set; } = "";
         public static IConfigurationRoot _config { get; set; }
         public static string _apiKey = "";
+        public static string _queueConnection = "";
+        public static string _queueName = "";
 
         // methods
-        protected internal AzureImageAnalyser( TraceWriter log, string imageURL, string name = "", string description = "", string hash = "" )
+        protected internal AzureImageAnalyser( TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
         {
             _log = log;
         }
 
-        public static AzureImageAnalyser Create(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "" )
+        public static AzureImageAnalyser Create(TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
         {
-            return new AzureImageAnalyser( log, imageURL, name, description, hash );
+            return new AzureImageAnalyser( log, etag, imageURL, hash, name, description );
         }
 
         /// <summary>
@@ -75,7 +77,7 @@ namespace VisionProcessor
             try
             {
                 log.Info("Creating configuration");
-
+                
                 var builder = new ConfigurationBuilder()
                    .SetBasePath(context.FunctionAppDirectory)
                    .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
@@ -83,19 +85,21 @@ namespace VisionProcessor
 
                 _config = builder.Build();
                 AzureImageAnalyser._apiKey = _config["GoogleAPIKey"];
+                AzureImageAnalyser._queueConnection = _config["MSGQ_CONSTR_VISION_ANALYSER"];
+                AzureImageAnalyser._queueName = _config["MSGQ_NAME_VISION_ANALYSER"];
 
                 log.Info($"Retrieved GoogleAPIKey: { _apiKey }");
-
+                
                 log.Info($"FileUpload:BlobTrigger processing Name:{name} \n Size: {myBlob.Length} Bytes");
 
                 log.Info($"FileUpload:BlobTrigger Passing blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
-                GCVision imageJob = GCVision.Create(log, myBlob2.Uri.ToString(), myBlob2.Name, myBlob2.Name + "_description", myBlob2.Properties.ContentMD5);
+                GCVision imageJob = GCVision.Create( log, myBlob2.Properties.ETag, myBlob2.Uri.ToString(), myBlob2.Properties.ContentMD5, myBlob2.Name, myBlob2.Name + "_description" );
                 imageJob.DetectAll();
 
                 log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
 
                 // place JSON data in Azure storage queue for further processing
-                await AddToQueue("functionsfactory", "vision", imageJob._jsonData, log);
+                await AddToQueue( imageJob._jsonData, log );
             }
 
             catch (Exception ex)
@@ -115,27 +119,28 @@ namespace VisionProcessor
         /// </summary>
         /// <param name="ocrResult"></param>
 
-        public static async Task AddToQueue(string storageAccountConnectionSetting, string queueName, string messageData, TraceWriter log)
+        public static async Task AddToQueue( string messageData, TraceWriter log )
         {
+            string queueConnectionString = AzureImageAnalyser._queueConnection;
+            string queueName = AzureImageAnalyser._queueName;
 
             try
             {
                 // Retrieve storage account from connection string.
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-                    CloudConfigurationManager.GetSetting(storageAccountConnectionSetting));
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse( AzureImageAnalyser._queueConnection );
 
                 // Create the queue client.
                 CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
                 // Retrieve a reference to a queue for this storage account.
-                CloudQueue queue = queueClient.GetQueueReference(queueName);
+                CloudQueue queue = queueClient.GetQueueReference(AzureImageAnalyser._queueName);
 
                 // Create the queue if it doesn't already exist.
                 await queue.CreateIfNotExistsAsync();
 
                 // Create a message and add it to the queue.
                 CloudQueueMessage message = new CloudQueueMessage(messageData);
-                log.Info($"Adding message: {messageData} to queue: {queueName}");
+                log.Info($"Adding message: {messageData} to queue: { queue }");
                 await queue.AddMessageAsync(message);
             }
 
