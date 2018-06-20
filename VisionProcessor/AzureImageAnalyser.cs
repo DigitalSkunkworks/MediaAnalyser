@@ -4,29 +4,13 @@
 /// These are the main entry points to 'functions' that are triggers or perform general operations.
 ///
 
-using System.IO;
-using Microsoft.Azure; // Name space for CloudConfigurationManager
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
-using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.Storage.Queue.Protocol;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage; // Name space for CloudStorageAccount
-using Microsoft.WindowsAzure.Storage.Queue; // Name space for Queue storage types
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-//using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
-
-using Google.Cloud.Vision.V1;
+using Microsoft.WindowsAzure.Storage.Blob;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace VisionProcessor
 {
@@ -35,7 +19,7 @@ namespace VisionProcessor
     /// However the scope of the code has increased and therefore the name of the class
     /// is now inappropriate.  It will be changed at a later date.
     /// </summary>
-    public class AzureImageAnalyser 
+    public class AzureImageAnalyser
     {
         // attributes
         TraceWriter _log = null;
@@ -46,14 +30,14 @@ namespace VisionProcessor
         public static string _queueName = "";
 
         // methods
-        protected internal AzureImageAnalyser( TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
+        protected internal AzureImageAnalyser(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "")
         {
             _log = log;
         }
 
-        public static AzureImageAnalyser Create(TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
+        public static AzureImageAnalyser Create(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "")
         {
-            return new AzureImageAnalyser( log, etag, imageURL, hash, name, description );
+            return new AzureImageAnalyser(log, imageURL, name, description, hash);
         }
 
         /// <summary>
@@ -77,7 +61,7 @@ namespace VisionProcessor
             try
             {
                 log.Info("Creating configuration");
-                
+
                 var builder = new ConfigurationBuilder()
                    .SetBasePath(context.FunctionAppDirectory)
                    .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
@@ -89,17 +73,20 @@ namespace VisionProcessor
                 AzureImageAnalyser._queueName = _config["MSGQ_NAME_VISION_ANALYSER"];
 
                 log.Info($"Retrieved GoogleAPIKey: { _apiKey }");
-                
+                log.Info($"Retrieved Queue Connection String: { _queueConnection }");
+                log.Info($"Retrieved Queue Name: { _queueName }");
+
                 log.Info($"FileUpload:BlobTrigger processing Name:{name} \n Size: {myBlob.Length} Bytes");
 
                 log.Info($"FileUpload:BlobTrigger Passing blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
-                GCVision imageJob = GCVision.Create( log, myBlob2.Properties.ETag, myBlob2.Uri.ToString(), myBlob2.Properties.ContentMD5, myBlob2.Name, myBlob2.Name + "_description" );
+                GCVision imageJob = GCVision.Create(log, myBlob2.Uri.ToString(), myBlob2.Name, myBlob2.Name + "_description", myBlob2.Properties.ContentMD5);
                 imageJob.DetectAll();
 
                 log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
 
                 // place JSON data in Azure storage queue for further processing
-                await AddToQueue( imageJob._jsonData, log );
+                QueueHandler queueHandler = new AzureQueueHandler(log, _queueConnection, _queueName, imageJob._jsonData);
+                await queueHandler.AddMessageToQueueAsync(_queueConnection, _queueName, imageJob._jsonData); 
             }
 
             catch (Exception ex)
@@ -110,46 +97,5 @@ namespace VisionProcessor
             return;
 
         }
-
-
-        /// <summary>
-        /// Add a message to a queue for processing in some other part of the system.
-        /// Currently the values for queues and so on are hard coded here but need to be removed and 
-        /// placed in the application configuration file.
-        /// </summary>
-        /// <param name="ocrResult"></param>
-
-        public static async Task AddToQueue( string messageData, TraceWriter log )
-        {
-            string queueConnectionString = AzureImageAnalyser._queueConnection;
-            string queueName = AzureImageAnalyser._queueName;
-
-            try
-            {
-                // Retrieve storage account from connection string.
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse( AzureImageAnalyser._queueConnection );
-
-                // Create the queue client.
-                CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
-
-                // Retrieve a reference to a queue for this storage account.
-                CloudQueue queue = queueClient.GetQueueReference(AzureImageAnalyser._queueName);
-
-                // Create the queue if it doesn't already exist.
-                await queue.CreateIfNotExistsAsync();
-
-                // Create a message and add it to the queue.
-                CloudQueueMessage message = new CloudQueueMessage(messageData);
-                log.Info($"Adding message: {messageData} to queue: { queue }");
-                await queue.AddMessageAsync(message);
-            }
-
-            catch (StorageException se)
-            {
-                log.Error($"Exception occurred creating message queue: {queueName} {se.ToString()}");
-                log.Info("Ensure the storage account is specified correctly");
-            }
-        }
-
     }
 }
