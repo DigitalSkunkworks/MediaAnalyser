@@ -16,8 +16,6 @@ namespace VisionProcessor
 {
     /// <summary>
     /// This class was initially intended to be solely for an upload POC.
-    /// However the scope of the code has increased and therefore the name of the class
-    /// is now inappropriate.  It will be changed at a later date.
     /// </summary>
     public class AzureImageAnalyser
     {
@@ -30,14 +28,14 @@ namespace VisionProcessor
         public static string _queueName = "";
 
         // methods
-        protected internal AzureImageAnalyser(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "")
+        protected internal AzureImageAnalyser( TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
         {
             _log = log;
         }
 
-        public static AzureImageAnalyser Create(TraceWriter log, string imageURL, string name = "", string description = "", string hash = "")
+        public static AzureImageAnalyser Create(TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
         {
-            return new AzureImageAnalyser(log, imageURL, name, description, hash);
+            return new AzureImageAnalyser( log, etag, imageURL, hash, name, description );
         }
 
         /// <summary>
@@ -60,8 +58,8 @@ namespace VisionProcessor
         {
             try
             {
-                log.Info("Creating configuration");
-
+                log.Info($"Blob analysis started, processing BLOB Name:{name} \n Size: {myBlob.Length} Bytes");
+                log.Info("Retrieving configuration");
                 var builder = new ConfigurationBuilder()
                    .SetBasePath(context.FunctionAppDirectory)
                    .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
@@ -72,21 +70,22 @@ namespace VisionProcessor
                 AzureImageAnalyser._queueConnection = _config["MSGQ_CONSTR_VISION_ANALYSER"];
                 AzureImageAnalyser._queueName = _config["MSGQ_NAME_VISION_ANALYSER"];
 
-                log.Info($"Retrieved GoogleAPIKey: { _apiKey }");
+//                log.Info($"Retrieved GoogleAPIKey: { _apiKey }");                     // retained for debug purposes only
                 log.Info($"Retrieved Queue Connection String: { _queueConnection }");
                 log.Info($"Retrieved Queue Name: { _queueName }");
 
                 log.Info($"FileUpload:BlobTrigger processing Name:{name} \n Size: {myBlob.Length} Bytes");
 
                 log.Info($"FileUpload:BlobTrigger Passing blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
-                GCVision imageJob = GCVision.Create(log, myBlob2.Uri.ToString(), myBlob2.Name, myBlob2.Name + "_description", myBlob2.Properties.ContentMD5);
+                GCVision imageJob = GCVision.Create( log, myBlob2.Properties.ETag, myBlob2.Uri.ToString(), myBlob2.Properties.ContentMD5, myBlob2.Container.Properties.LastModified, DateTimeOffset.UtcNow, myBlob2.Name, myBlob2.Name + "_description" );
+
                 imageJob.DetectAll();
 
                 log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
 
                 // place JSON data in Azure storage queue for further processing
-                QueueHandler queueHandler = new AzureQueueHandler(log, _queueConnection, _queueName, imageJob._jsonData);
-                await queueHandler.AddMessageToQueueAsync(_queueConnection, _queueName, imageJob._jsonData); 
+                await AddToQueue(imageJob._jsonData, log);
+                log.Info("Blob analysis completed Successfully");
             }
 
             catch (Exception ex)
@@ -95,7 +94,22 @@ namespace VisionProcessor
                 throw ex;
             }
             return;
+        }
 
+        public static async Task AddToQueue(string messageData, TraceWriter log)
+        {
+            QueueHandler queueHandler = new AzureQueueHandler( log, _queueConnection, _queueName, messageData );
+            await queueHandler.AddMessageToQueueAsync( _queueConnection, _queueName, messageData );
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sourceUrl"></param>
+        /// <returns></returns>
+        public static string GenerateIDFromURL(string sourceUrl)
+        {
+            return string.Format("{0}_{1:N}", sourceUrl, Guid.NewGuid());
         }
     }
 }

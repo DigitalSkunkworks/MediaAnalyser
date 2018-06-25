@@ -1,25 +1,8 @@
 ﻿
 using System.IO;
-using Microsoft.Azure; // Name space for CloudConfigurationManager
-using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
-using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.Storage.Queue.Protocol;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage; // Name space for CloudStorageAccount
-using Microsoft.WindowsAzure.Storage.Queue; // Name space for Queue storage types
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
-using System.Data;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Microsoft.Extensions.Configuration;
 
 using Google.Cloud.Vision.V1;
 using Google.Apis.Auth.OAuth2;
@@ -111,7 +94,6 @@ namespace VisionProcessor
             try
             {
                 apiKey = AzureImageAnalyser._apiKey;
-                _log.Info($"Retrieved Google API key from application settings:\n { apiKey }.");
             }
             catch (InvalidOperationException e)
             {
