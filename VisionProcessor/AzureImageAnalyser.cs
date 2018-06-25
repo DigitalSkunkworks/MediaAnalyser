@@ -146,8 +146,16 @@ namespace VisionProcessor
         /// <returns></returns>
         public static async Task AddToQueue(string messageData, TraceWriter log)
         {
-            QueueHandler queueHandler = new AzureQueueHandler( log, _queueConnection, _queueName, messageData );
-            await queueHandler.AddMessageToQueueAsync( _queueConnection, _queueName, messageData );
+            try
+            {
+                QueueHandler queueHandler = new AzureQueueHandler( log, _queueConnection, _queueName, messageData );
+                await queueHandler.AddMessageToQueueAsync( _queueConnection, _queueName, messageData );
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Trigger Exception found: {ex.Message}");
+                throw ex;
+            }
         }
 
         /// <summary>

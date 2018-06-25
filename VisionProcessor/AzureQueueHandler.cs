@@ -58,6 +58,12 @@ namespace VisionProcessor
                     throw new Exception("Cannot create CloudQueue Client reference.");
                 }
             }
+            catch (FormatException fe)
+            {
+                //Format Exception logging.
+                _log.Error($"Format Exception found: {fe.Message}");
+                throw fe;
+            }
             catch (StorageException se)
             {
                 // Error logging.    
@@ -139,6 +145,11 @@ namespace VisionProcessor
             catch (StorageException se)
             {
                 _log.Error($"Exception occurred posting to the message queue: { se.Message }.");
+                throw;
+            }
+            catch (Exception se)
+            {
+                _log.Error($"Storage Exception occurred posting to the message queue: { se.Message }.");
                 throw;
             }
             return azureAddMessageReturnReponse;

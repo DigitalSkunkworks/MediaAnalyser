@@ -289,20 +289,29 @@ namespace VisionProcessor
         /// </summary>
         public async void DetectAll()
         {
-            _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString(), true);        // IReadOnlyCollection<EntityAnnotation>
-            await AzureImageAnalyser.AddToQueue( _jsonData, _log);
+            try
+            {
+                _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString(), true);        // IReadOnlyCollection<EntityAnnotation>
+                await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
-            _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_DOCTEXT).Text);                     // TextAnnotation
-            await AzureImageAnalyser.AddToQueue( _jsonData, _log);
+                _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_DOCTEXT).Text);                     // TextAnnotation
+                await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
-            _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString(), true);      // IReadOnlyCollection<EntityAnnotation>
-            await AzureImageAnalyser.AddToQueue( _jsonData, _log);
+                _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString(), true);      // IReadOnlyCollection<EntityAnnotation>
+                await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
  //           _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS ).ToString(), true);          // IReadOnlyCollection<EntityAnnotation>
  //           await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
-            _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString(), true);                 // WebDetection
-            await AzureImageAnalyser.AddToQueue( _jsonData, _log);
+                _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString(), true);                 // WebDetection
+                await AzureImageAnalyser.AddToQueue( _jsonData, _log);
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Trigger Exception found: {ex.Message}");
+
+                throw ex;
+            }
         }
 
         /// <summary>
