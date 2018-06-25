@@ -4,11 +4,19 @@ using System.Threading.Tasks;
 
 namespace VisionProcessor
 {
+    /// <summary>
+    /// Class QueueHandler
+    /// Base class to all queue classes for all cloud platforms.
+    /// Handles insertion, deletion, messge peeking etc.
+    /// </summary>
     public abstract class QueueHandler
     {
         protected internal enum status { PROCESS_SUCCESS = 0, PROCESS_FAIL };
 
         // attributes
+        /// <summary>
+        /// 
+        /// </summary>
         protected internal string _queueConnectionString { get; set; } = "";
         protected internal string _queueName { get; set; } = "";
         protected internal string _messageData { get; set; } = "";

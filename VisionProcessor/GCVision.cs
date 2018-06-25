@@ -327,7 +327,7 @@ namespace VisionProcessor
 
         /// <summary>
         /// DetectSafeSearch
-        /// Compares an image with images from the web to determine if there are similarities or exact matched images.
+        /// Compares to determine if it has any material considered controversial.
         /// </summary>
         /// <returns></returns>
         public string DetectSafeSearch()
@@ -336,7 +336,7 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// 
+        /// DetectProperties
         /// </summary>
         /// <returns></returns>
         public string DetectProperties()
@@ -345,7 +345,8 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// 
+        /// DetectLandmarks
+        /// Recognises any image of structures that are known to the Google Vision image database.
         /// </summary>
         /// <returns></returns>
         public string DetectLandmarks()
@@ -354,7 +355,8 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// 
+        /// DetectText
+        /// Returns any recognisable written text from ab image.
         /// </summary>
         /// <returns></returns>
         public string DetectText()
@@ -363,7 +365,8 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// 
+        /// DetectLogos
+        /// Finds any logos that it has in its database of logo images.
         /// </summary>
         /// <returns></returns>
         public string DetectLogos()
@@ -372,7 +375,7 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// 
+        /// DetectCropHint
         /// </summary>
         /// <returns></returns>
         public string DetectCropHint()
@@ -381,7 +384,8 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// 
+        /// DetectWeb
+        /// Compares an image with images from the web to determine if there are similarities or exact matched images.
         /// </summary>
         /// <returns></returns>
         public string DetectWeb()
@@ -390,6 +394,7 @@ namespace VisionProcessor
         }
 
         /// <summary>
+        /// DetectDocText
         /// 
         /// </summary>
         /// <returns></returns>

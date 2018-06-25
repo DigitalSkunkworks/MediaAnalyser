@@ -115,6 +115,11 @@ namespace VisionProcessor
             return new MemoryStream(Encoding.UTF8.GetBytes(value ?? ""));
         }
 
+        /// <summary>
+        /// GetGoogle|APIKey
+        /// Retrieves the Vision API key from the settings for the application.
+        /// </summary>
+        /// <returns></returns>
         private static Stream GetGoogleAPIKey()
         {
             string apiKey;
@@ -132,6 +137,12 @@ namespace VisionProcessor
             return GenerateStreamFromString( apiKey);
         }
 
+        /// <summary>
+        /// CreateCredential
+        /// Constructs a GC API credential from a value in the application settings then converts this to a stream object as 
+        /// this is the only form that can be parsed by the GC API.
+        /// </summary>
+        /// <returns></returns>
         private static GoogleCredential CreateCredential()
         {
             using (var stream = GetGoogleAPIKey())
