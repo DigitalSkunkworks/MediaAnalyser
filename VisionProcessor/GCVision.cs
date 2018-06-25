@@ -92,7 +92,7 @@ namespace VisionProcessor
         private string TrimJSON(string rawJSON, bool stripJSON=false )
         {
             // fix up for incorrect JSON returned from RPC call.
-            // adds LAbelAnnotations to the start of arrays for
+            // adds LabelAnnotations to the start of arrays for
             // the following Jfunctions
             if (_detectFunctionId == AnalysisMethod.DETECT_LABELS 
                 || _detectFunctionId == AnalysisMethod.DETECT_LANDMARKS 
@@ -170,6 +170,7 @@ namespace VisionProcessor
                         // If this is the first block of data in the JSON then prepend it
                         // with a header to account for Google not returning the correct data.
                         // add JSON header data
+
                         writer.WritePropertyName("BLOBURI");
                         writer.WriteValue(_url);
                         writer.WritePropertyName("BLOBUID");

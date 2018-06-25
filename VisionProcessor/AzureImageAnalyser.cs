@@ -112,9 +112,14 @@ namespace VisionProcessor
                 AzureImageAnalyser._queueConnection = _config["MSGQ_CONSTR_VISION_ANALYSER"];
                 AzureImageAnalyser._queueName = _config["MSGQ_NAME_VISION_ANALYSER"];
 
-//                log.Info($"Retrieved GoogleAPIKey: { _apiKey }");                     // retained for debug purposes only
+                // log.Info($"Retrieved GoogleAPIKey: { _apiKey }");                     // retained for debug purposes only
                 log.Info($"Retrieved Queue Connection String: { _queueConnection }");
                 log.Info($"Retrieved Queue Name: { _queueName }");
+
+                log.Info($"Assigning Provenance Metadata to Block Blob");
+                AzureBlobManagement provenanceGUID = new AzureBlobManagement( log );
+                //await provenanceGUID.
+                    //AddBlockBlobMetadataAsync
 
                 log.Info($"FileUpload:BlobTrigger Passing blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
                 GCVision imageJob = GCVision.Create( log, myBlob2.Properties.ETag, myBlob2.Uri.ToString(), myBlob2.Properties.ContentMD5, myBlob2.Container.Properties.LastModified, DateTimeOffset.UtcNow, myBlob2.Name, myBlob2.Name + "_description" );
