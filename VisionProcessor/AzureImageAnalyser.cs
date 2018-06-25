@@ -31,7 +31,7 @@ namespace VisionProcessor
         /// <summary>
         /// _config
         /// Contains data from the environment and other configuration sources bound in a single data structure.
-        /// </summary>
+        /// </summary> 
         public static IConfigurationRoot _config { get; set; }
 
         /// <summary>
@@ -56,11 +56,23 @@ namespace VisionProcessor
         public static string _queueName = "";
 
         // methods
-        protected internal AzureImageAnalyser( TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
+        protected internal AzureImageAnalyser( TraceWriter log, string etag, string imageURL, string hash, string name =  "", string description = "" )
         {
             _log = log;
         }
 
+        /// <summary>
+        /// Create
+        /// Permits an external process to create an instance of this object without having direct access to the constructor,
+        /// thereby permitting tighter control of the use of class instances.
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="etag"></param>
+        /// <param name="imageURL"></param>
+        /// <param name="hash"></param>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        /// <returns></returns>
         public static AzureImageAnalyser Create(TraceWriter log, string etag, string imageURL, string hash, string name = "", string description = "" )
         {
             return new AzureImageAnalyser( log, etag, imageURL, hash, name, description );
@@ -117,7 +129,7 @@ namespace VisionProcessor
 
             catch (Exception ex)
             {
-                log.Info($"Trigger Exception found: {ex.Message}");
+                log.Error($"Trigger Exception found: {ex.Message}");
                 throw ex;
             }
             return;

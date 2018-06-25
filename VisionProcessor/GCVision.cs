@@ -17,18 +17,42 @@ using Google.Cloud.Vision.V1;
 namespace VisionProcessor
 {
     /// <summary>
-    /// This class was initially intended to be solely for an upload POC.
-    /// However the scope of the code has increased and therefore the name of the class
-    /// is now inappropriate.  It will be changed at a later date.
+    /// Class GCVision 
+    /// Wraps the functionality exposed from the Google Cloud Vision API.
+    /// Each function in the GCAPI can be invoked separately or as a block of functions and that data can be returned as 
+    /// a single set of results.
     /// </summary>
     public class GCVision : ImageAnalyser
     {
         // attributes
+        /// <summary>
+        /// AnalysisMethod
+        /// List of methods that are exposed by the GCAPI and some additional values that extend that for additional functionality.
+        /// </summary>
         public enum AnalysisMethod { DETECT_FACES = 0, DETECT_LANDMARKS, DETECT_LABELS, DETECT_SAFESEARCH, DETECT_PROPERTIES, DETECT_TEXT, DETECT_LOGOS, DETECT_CROPHINT, DETECT_WEB, DETECT_DOCTEXT, DETECT_ALL, DETECT_NONE };
+
+        /// <summary>
+        /// DetectFunctionNames
+        /// Set of strings that may be inserted into the logs when a method name is required.
+        /// </summary>
         private string[] DetectFunctionNames = { "DETECT_FACES", "DETECT_LANDMARKS", "DETECT_LABELS", "DETECT_SAFESEARCH", "DETECT_PROPERTIES", "DETECT_TEXT", "DETECT_LOGOS", "DETECT_CROPHINT", "DETECT_WEB", "DETECT_DOCTEXT", "DETECT_ALL", "DETECT_NONE"};
 
+        /// <summary>
+        /// _log
+        /// Logging object instance.
+        /// </summary>
         TraceWriter _log = null;
+
+        /// <summary>
+        /// _image
+        /// Image object create4d from the file name or URI that is to be presented to the GCAPI for processing.
+        /// </summary>
         public Image _image { get; set; }
+
+        /// <summary>
+        /// _decetFunctionId
+        /// Indicates the GCAPI method invoked on the image presented to the GCAPI.
+        /// </summary>
         protected AnalysisMethod _detectFunctionId { get; set; } = AnalysisMethod.DETECT_NONE;
 
         // methods
@@ -39,6 +63,10 @@ namespace VisionProcessor
             _image = ImageFromUri(imageURL);
         }
 
+        /// <summary>
+        /// Create
+        /// Permits an external process to create an instance of this object without having direct access to the constructor,
+        /// thereby permitting tighter control of the use of class instances.
         public static GCVision Create( TraceWriter log, string etag, string imageURL, string hash, DateTimeOffset? dateSubmitted, DateTimeOffset? dateProcessed, string name = "", string description = "" )
         {
             GCPAuthentication.GetClient( log );
@@ -47,25 +75,28 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// Parent Meta data
-        ///  Blob URI
-        ///  Blob Date submitted
-        ///  API Date processed
-        ///  UID
-        ///  Functions: func1, func2, ...
-        ///  }
-        ///  func1 payload  data
-        ///  func2 payload data
-        ///  func3 payload  data
-        ///  func4 payload data
-        ///  func5 payload  data(edited)
+        /// TrimJSON
+        /// Amends the JSON returned from the calls to the GCAPI.
+        /// Adds a header to the JSON that is not present in the data returned from the GCAPI calls.
+        /// Adds missing labels to JSON data arrays that are not present in the GCAPI returned JSON, as this causes
+        /// version 10.0.3 of the NewtonSoft parser to throw exceptions.
+        /// This has now been fixed in a subsequent release but are unable to use it currently as they .NET core 2.x API does not fully support it.
+        /// Escapes some text data to ensure it is not parsed incorrectly by the Newtonsoft JSON parser.
+        /// Parses the 'rawJSON' adding the header and will remove and add content according to the 'stripJSON' setting.
         /// </summary>
+        /// TrimJSON
+        /// 
         /// <param name="rawJSON"></param>
+        /// <param name="stripJSON"></param>
         /// <returns></returns>
         private string TrimJSON(string rawJSON, bool stripJSON=false )
         {
             // fix up for incorrect JSON returned from RPC call.
-            if (_detectFunctionId == AnalysisMethod.DETECT_LABELS || _detectFunctionId == AnalysisMethod.DETECT_LANDMARKS || _detectFunctionId == AnalysisMethod.DETECT_LOGOS)
+            // adds LAbelAnnotations to the start of arrays for
+            // the following Jfunctions
+            if (_detectFunctionId == AnalysisMethod.DETECT_LABELS 
+                || _detectFunctionId == AnalysisMethod.DETECT_LANDMARKS 
+                || _detectFunctionId == AnalysisMethod.DETECT_LOGOS)
             {
                 rawJSON = rawJSON.Insert( 0, "{");
                 var startObjAt = rawJSON.IndexOf('[', 0);
@@ -74,6 +105,7 @@ namespace VisionProcessor
             }
             else if (AnalysisMethod.DETECT_DOCTEXT == _detectFunctionId)
             {
+                // Add escape sequence to text to remove NewtonSoft processing issues.
                 // substitution first of special characters
                 rawJSON = rawJSON.Replace("\"", "\\\\\\\"");
                 rawJSON = rawJSON.Replace("\'", "\\\\\\\'");
@@ -90,6 +122,7 @@ namespace VisionProcessor
 
             writer.Formatting = Formatting.Indented;
 
+            // Parse the JSON remaining in the message stripping some elements. 
             while (reader.Read())
             {
                 // strip elements from returned JSON data
@@ -118,6 +151,8 @@ namespace VisionProcessor
                 }
                 else
                 {
+                    // Start and end objects have to be written out explicitly using NewtonSoft funcs.
+                    // If not then the JSON fails to parse and an exception is thrown.
                     if (reader.TokenType == JsonToken.StartObject)
                     {
                         writer.WriteStartObject();
@@ -132,6 +167,8 @@ namespace VisionProcessor
                     }
                     if (!parentStartFound)
                     {
+                        // If this is the first block of data in the JSON then prepend it
+                        // with a header to account for Google not returning the correct data.
                         // add JSON header data
                         writer.WritePropertyName("BLOBURI");
                         writer.WriteValue(_url);
@@ -150,11 +187,24 @@ namespace VisionProcessor
             return sw.ToString();
         }
 
+        /// <summary>
+        /// ImageFromURI
+        /// Create an Google Image object from a given URI 'url'.
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
         static Image ImageFromUri(string uri)
         {
             return Image.FromUri(uri);
         }
 
+        /// <summary>
+        /// ApplyAnaysis
+        /// Given a specific 'detectionType' the corresponding GC Vision API function is invoked.
+        /// Returns a different type from different API calls, hence the use of a dynamic type object.
+        /// </summary>
+        /// <param name="detectionType"></param>
+        /// <returns></returns>
         public dynamic ApplyAnalysis(AnalysisMethod detectionType)
         {
             var response = (dynamic)null;
@@ -213,14 +263,30 @@ namespace VisionProcessor
             return response;
         }
 
+        /// <summary>
+        /// AnalyseFile
+        /// Overridden ABC method that are currently unused.
+        /// </summary>
+        /// <param name="filePath"></param>
         public override void AnalyseFile(string filePath)
         {
         }
 
+        /// <summary>
+        /// AnalyseURL
+        /// Overridden ABC method that are currently unused.
+        /// </summary>
+        /// <param name="filePath"></param>
         public override void AnalyseURL()
         {
         }
 
+        /// <summary>
+        /// DetectAll
+        /// Parent method that invokes what is currently defined as 'ALL' methods from the GC API.
+        /// It was decided that each message due to a 64K limitation of the messages size should be returned
+        /// separately to the queue rather than combined as a single message.
+        /// </summary>
         public async void DetectAll()
         {
             _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString(), true);        // IReadOnlyCollection<EntityAnnotation>
@@ -240,9 +306,8 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// 
-        /// Retains description and score.  
-        /// Deletes mid and topicality
+        /// DetectLabels
+        /// Identifies and applies labels to recognised items in an image.
         /// </summary>
         /// <returns></returns>
         public string DetectLabels()
@@ -251,6 +316,7 @@ namespace VisionProcessor
         }
 
         /// <summary>
+        /// DetectFaces
         /// Returns the number of faces, the expressions and position in an image.
         /// </summary>
         /// <returns></returns>
@@ -260,7 +326,8 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// 
+        /// DetectSafeSearch
+        /// Compares an image with images from the web to determine if there are similarities or exact matched images.
         /// </summary>
         /// <returns></returns>
         public string DetectSafeSearch()
