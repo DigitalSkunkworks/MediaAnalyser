@@ -6,10 +6,24 @@ using System.Threading.Tasks;
 
 namespace VisionProcessor
 {
+    /// <summary>
+    /// Class AzureQueueHandler
+    /// Azure specific message handling methods.
+    ///
+    /// </summary>
     public class AzureQueueHandler : QueueHandler
     {
         // attributes
+        /// <summary>
+        /// _log
+        /// Contains the log object instance.
+        /// </summary>
         private static TraceWriter _log = null;
+
+        /// <summary>
+        /// _queue
+        /// Azure queue object instance.
+        /// </summary>
         private static CloudQueue _queue { get; set; } = null;
 
         //methods
@@ -19,7 +33,13 @@ namespace VisionProcessor
             _log = log;
         }
 
-        // Create queue client method
+        /// <summary>
+        /// CreateQueueClient
+        /// Creates a connection to a queue 'queueName' using connection 'queueConnectionString'.
+        /// </summary>
+        /// <param name="queueConnectionString"></param>
+        /// <param name="queueName"></param>
+        /// <returns></returns>
         public override CloudQueue CreateQueueClient (string queueConnectionString, string queueName)
         {
             try
@@ -47,7 +67,13 @@ namespace VisionProcessor
             return _queue;
         }
 
-        // Create message queue method
+        /// <summary>
+        /// CreateMessageQueueAsync 
+        /// Create message queue 'queueName' using connection 'queueConnectionString'.
+        /// </summary>
+        /// <param name="queueConnectionString"></param>
+        /// <param name="queueName"></param>
+        /// <returns></returns>
         public override async Task<Boolean> CreateMessageQueueAsync(string queueConnectionString, string queueName)
         {
             Boolean azureQueueCreateResponse = false;
@@ -84,6 +110,14 @@ namespace VisionProcessor
             return azureCreateMessageQueueReturnReponse;
         }
 
+        /// <summary>
+        /// AddMessageToQueueAsync
+        /// Add a message given by 'messageData' on the queue specified in 'queueName' using connection 'queueConnectionString'.
+        /// </summary>
+        /// <param name="queueConnectionString"></param>
+        /// <param name="queueName"></param>
+        /// <param name="messageData"></param>
+        /// <returns></returns>
         public override async Task<Boolean> AddMessageToQueueAsync(string queueConnectionString, string queueName, string messageData)
         {
             Boolean azureAddMessageReturnReponse = false;
@@ -110,7 +144,14 @@ namespace VisionProcessor
             return azureAddMessageReturnReponse;
         }
 
-        // Peek message on queue method
+        /// <summary>
+        /// PeekNextMessageOnQueueAsync
+        /// Look at the next available message on a queue 'queueName' using connection 'queueConnectionString' without removing it from the queue.
+        /// Peek message on queue method
+        /// </summary>
+        /// <param name="queueConnectionString"></param>
+        /// <param name="queueName"></param>
+        /// <returns></returns>
         public override async Task<String> PeekNextMessageOnQueueAsync(string queueConnectionString, string queueName)
         {
             CloudQueueMessage azurePeekedMessageReturnReponse = null;

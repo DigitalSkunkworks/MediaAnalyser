@@ -12,13 +12,41 @@ namespace VisionProcessor
 {
     class GCPAuthentication
     {
-        // attributes
+        /// <summary>
+        /// _log
+        /// Logging object instance
+        /// </summary>
         private static TraceWriter          _log;
+
+        /// <summary>
+        /// _credential
+        /// Google ADC - application default credentials.
+        /// This is a value unique to the authorised entity to execute this code
+        /// </summary>
         private static GoogleCredential     _credential;
+
+        /// <summary>
+        /// _channel
+        /// RPC calling channel.
+        /// </summary>
         private static Grpc.Core.Channel    _channel;
+
+        /// <summary>
+        /// _client
+        /// Object that gives access to the Vision API functionality.
+        /// </summary>
         private static ImageAnnotatorClient _client { get; set; } = null;
 
-        private static readonly string[] ChannelState = { "Channel is connecting", "Channel is idle", "Channel is ready for work", "Channel has seen a failure that it cannot recover from", "Channel has seen a failure but expects to recover" };
+        /// <summary>
+        /// ChannelState
+        /// List of strings representing a lookup table of channel states to insert into log
+        /// statements.
+        /// </summary>
+        private static readonly string[] ChannelState = {   "Channel is connecting",
+                                                            "Channel is idle",
+                                                            "Channel is ready for work",
+                                                            "Channel has seen a failure that it cannot recover from",
+                                                            "Channel has seen a failure but expects to recover" };
 
         // methods
         /// <summary>

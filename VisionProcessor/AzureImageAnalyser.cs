@@ -15,16 +15,44 @@ using System.Threading.Tasks;
 namespace VisionProcessor
 {
     /// <summary>
-    /// This class was initially intended to be solely for an upload POC.
+    /// This class is intended to be solely for an upload POC.
+    /// This class is intended to be the specialisation for event handling such as triggers and 
+    /// other base functionality such as placing messages on queue that are specific to the Azure Cloud platform.
     /// </summary>
     public class AzureImageAnalyser
     {
         // attributes
+        /// <summary>
+        /// _log
+        /// Logging object instance - stored from object passed through from trigger.
+        /// </summary>
         TraceWriter _log = null;
-        protected internal string _jsonData { get; set; } = "";
+
+        /// <summary>
+        /// _config
+        /// Contains data from the environment and other configuration sources bound in a single data structure.
+        /// </summary>
         public static IConfigurationRoot _config { get; set; }
+
+        /// <summary>
+        /// _apiKey
+        /// The key for the API that is being invoked.
+        /// This is currently the Google Vision API.
+        /// The value should be an array of key values as many API keys may be required ultimately.
+        /// Additionally it may be worthwhile considering creating another class that manages all the configuration data.
+        /// </summary>
         public static string _apiKey = "";
+
+        /// <summary>
+        /// _queueConnection
+        /// Connection to the storage account.
+        /// </summary>
         public static string _queueConnection = "";
+
+        /// <summary>
+        /// _queueName
+        /// Name of queue within the storage account that is to be used.
+        /// </summary>
         public static string _queueName = "";
 
         // methods
@@ -59,6 +87,8 @@ namespace VisionProcessor
             try
             {
                 log.Info($"Blob analysis started, processing BLOB Name:{name} \n Size: {myBlob.Length} Bytes");
+
+                // Create a block of configuration data that can be easily referenced later in the code.
                 log.Info("Retrieving configuration");
                 var builder = new ConfigurationBuilder()
                    .SetBasePath(context.FunctionAppDirectory)
@@ -74,16 +104,13 @@ namespace VisionProcessor
                 log.Info($"Retrieved Queue Connection String: { _queueConnection }");
                 log.Info($"Retrieved Queue Name: { _queueName }");
 
-                log.Info($"FileUpload:BlobTrigger processing Name:{name} \n Size: {myBlob.Length} Bytes");
-
                 log.Info($"FileUpload:BlobTrigger Passing blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
                 GCVision imageJob = GCVision.Create( log, myBlob2.Properties.ETag, myBlob2.Uri.ToString(), myBlob2.Properties.ContentMD5, myBlob2.Container.Properties.LastModified, DateTimeOffset.UtcNow, myBlob2.Name, myBlob2.Name + "_description" );
 
                 imageJob.DetectAll();
 
-                log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
-
                 // place JSON data in Azure storage queue for further processing
+                log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
                 await AddToQueue(imageJob._jsonData, log);
                 log.Info("Blob analysis completed Successfully");
             }
@@ -96,6 +123,15 @@ namespace VisionProcessor
             return;
         }
 
+        /// <summary>
+        /// AddToQueue
+        /// Places the string messageData on a queue specified by the member attribute _queueName 
+        /// using the connection specified by _queueConnection.
+        /// The log object is available should it be required.    
+        /// </summary>
+        /// <param name="messageData"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
         public static async Task AddToQueue(string messageData, TraceWriter log)
         {
             QueueHandler queueHandler = new AzureQueueHandler( log, _queueConnection, _queueName, messageData );
@@ -103,7 +139,8 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// 
+        /// GenerateIDFromURL
+        /// Create a UID composed of the URL specified in sourceURL and append with a system generated GUID.
         /// </summary>
         /// <param name="sourceUrl"></param>
         /// <returns></returns>
