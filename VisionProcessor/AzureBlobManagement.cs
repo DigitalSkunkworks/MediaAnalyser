@@ -22,7 +22,7 @@ namespace VisionProcessor
 
         // methods
         /// <summary>
-        /// Method gets Cloud Block Blob Metadata.
+        /// Method gets Cloud Block Blob Metadata - GUID.
         /// </summary>
         public static async Task<Boolean> GetBlockBlobMetadataAsync(CloudBlockBlob blockBlob, TraceWriter _log)
         {
@@ -49,6 +49,30 @@ namespace VisionProcessor
             }
             return blobGUIDReturnResponse;
         }
+
+        /// <summary>
+        /// Method gets Cloud Block Blob Metadata - LastModified.
+        /// </summary>
+        public static async Task<DateTime> GetBlockBlobPropertiesAsync(CloudBlockBlob blockBlob, TraceWriter _log)
+        {
+            DateTime blobPropertyReturnResponse = DateTime.Now;
+
+            try
+            {
+                // Get the Blob's metadata.
+                await blockBlob.FetchAttributesAsync();
+                if (blockBlob.Properties.LastModified.HasValue)
+                {
+                    blobPropertyReturnResponse = blockBlob.Properties.LastModified.Value.LocalDateTime;
+                }
+            }
+            catch (StorageException se)
+            {
+                _log.Error($"Property fetch failed: {se.Message}");
+            }
+            return blobPropertyReturnResponse;
+        }
+
 
         /// <summary>
         /// Method sets Cloud Block Blob Metadata.
