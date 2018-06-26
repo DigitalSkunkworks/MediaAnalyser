@@ -38,13 +38,13 @@ namespace VisionProcessor
                 await blockBlob.FetchAttributesAsync();
                 if (blockBlob.Metadata["GUID"] != null)
                 {
-                    _log.Info($"GUID Already Set.");
+                    //_log.Info($"GUID Already Set.");
                     blobGUIDReturnResponse = true;
                 }
             }
             catch (KeyNotFoundException)
             {
-                // captures value missing from Block Blob metadata;
+                // capture GUID key missing from Block Blob metadata;
             }
 
             catch (StorageException se)

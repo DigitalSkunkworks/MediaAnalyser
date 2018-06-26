@@ -123,7 +123,7 @@ namespace VisionProcessor
                 if (!provenanceGUIDGet)
                 {
                     string provenanceGUID = await AzureBlobManagement.SetBlockBlobMetadataAsync(myBlob2, log);
-                    log.Info($"Assigning Provenance Metadata to Block Blob { provenanceGUID }");
+                    log.Info($"Assigning Provenance Metadata to Blob Name { provenanceGUID }");
 
                     log.Info($"FileUpload:BlobTrigger Passing Blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
                     GCVision imageJob = GCVision.Create(log, provenanceGUID, myBlob2.Uri.ToString(), myBlob2.Properties.ContentMD5, myBlob2.Container.Properties.LastModified, DateTimeOffset.UtcNow, myBlob2.Name, myBlob2.Name + "_description");
@@ -133,11 +133,11 @@ namespace VisionProcessor
                     // Place JSON data in Azure storage queue for further processing
                     log.Info($"FileUpload:BlobTrigger Placing JSON data for Blob Name: {name} in queue for analysis.");
                     await AddToQueue(imageJob._jsonData, log);
-                    log.Info("Blob analysis completed Successfully");
+                    log.Info("Blob analysis completed successfully");
                 }
                 else
                 {
-                    log.Info("Blob already proccessed");
+                    log.Info("Blob processing completed");
                 }
             }
 
