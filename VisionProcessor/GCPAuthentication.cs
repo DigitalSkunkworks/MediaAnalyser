@@ -104,8 +104,7 @@ namespace VisionProcessor
         }
 
         /// <summary>
-        /// The Google key is consumed as a file.
-        /// As it will be an application setting then it has to be turned into a file stream instance
+        /// The Google key is an application setting. It has to be turned into a file stream instance
         /// to be used.
         /// </summary>
         /// <param name="value"></param>

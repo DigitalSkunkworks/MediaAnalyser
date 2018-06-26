@@ -19,10 +19,6 @@ namespace VisionProcessor
         TraceWriter _log = null;
 
         //constructor
-        public AzureBlobManagement( TraceWriter log )
-        {
-            _log = log;
-        }
 
         // methods
         /// <summary>
@@ -44,7 +40,7 @@ namespace VisionProcessor
             }
             catch (KeyNotFoundException)
             {
-                // capture GUID key missing from Block Blob metadata;
+                // Capture GUID key missing from Block Blob metadata;
             }
 
             catch (StorageException se)
@@ -68,7 +64,7 @@ namespace VisionProcessor
 
                 // Set the Block Blob's metadata.
                 await blockBlob.SetMetadataAsync();
-                _log.Info($"Add Block Blob Storage metadata.");
+                _log.Info($"Blob Storage metadata added.");
             }
             catch (StorageException se)
             {
