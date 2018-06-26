@@ -112,24 +112,33 @@ namespace VisionProcessor
                 AzureImageAnalyser._queueConnection = _config["MSGQ_CONSTR_VISION_ANALYSER"];
                 AzureImageAnalyser._queueName = _config["MSGQ_NAME_VISION_ANALYSER"];
 
-                // log.Info($"Retrieved GoogleAPIKey: { _apiKey }");                     // retained for debug purposes only
-                log.Info($"Retrieved Queue Connection String: { _queueConnection }");
-                log.Info($"Retrieved Queue Name: { _queueName }");
+                // retained for debug purposes only
+                //log.Info($"Retrieved GoogleAPIKey: { _apiKey }");                     
+                //log.Info($"Retrieved Queue Connection String: { _queueConnection }");
+                //log.Info($"Retrieved Queue Name: { _queueName }");
 
-                log.Info($"Assigning Provenance Metadata to Block Blob");
-                AzureBlobManagement provenanceGUID = new AzureBlobManagement( log );
-                //await provenanceGUID.
-                    //AddBlockBlobMetadataAsync
+                // check whether Blob has been processed before
+                Boolean provenanceGUIDGet = await AzureBlobManagement.GetBlockBlobMetadataAsync(myBlob2, log);
 
-                log.Info($"FileUpload:BlobTrigger Passing blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
-                GCVision imageJob = GCVision.Create( log, myBlob2.Properties.ETag, myBlob2.Uri.ToString(), myBlob2.Properties.ContentMD5, myBlob2.Container.Properties.LastModified, DateTimeOffset.UtcNow, myBlob2.Name, myBlob2.Name + "_description" );
+                if (!provenanceGUIDGet)
+                {
+                    string provenanceGUID = await AzureBlobManagement.SetBlockBlobMetadataAsync(myBlob2, log);
+                    log.Info($"Assigning Provenance Metadata to Block Blob { provenanceGUID }");
 
-                imageJob.DetectAll();
+                    log.Info($"FileUpload:BlobTrigger Passing Blob Name:{ myBlob2.Uri.ToString() } to Vision API.");
+                    GCVision imageJob = GCVision.Create(log, provenanceGUID, myBlob2.Uri.ToString(), myBlob2.Properties.ContentMD5, myBlob2.Container.Properties.LastModified, DateTimeOffset.UtcNow, myBlob2.Name, myBlob2.Name + "_description");
 
-                // place JSON data in Azure storage queue for further processing
-                log.Info($"FileUpload:BlobTrigger Placing JSON data for blob Name: {name} in queue for analysis.");
-                await AddToQueue(imageJob._jsonData, log);
-                log.Info("Blob analysis completed Successfully");
+                    imageJob.DetectAll();
+
+                    // Place JSON data in Azure storage queue for further processing
+                    log.Info($"FileUpload:BlobTrigger Placing JSON data for Blob Name: {name} in queue for analysis.");
+                    await AddToQueue(imageJob._jsonData, log);
+                    log.Info("Blob analysis completed Successfully");
+                }
+                else
+                {
+                    log.Info("Blob already proccessed");
+                }
             }
 
             catch (Exception ex)
@@ -166,6 +175,7 @@ namespace VisionProcessor
         /// <summary>
         /// GenerateIDFromURL
         /// Create a UID composed of the URL specified in sourceURL and append with a system generated GUID.
+        /// No longer used to generateGUID. Retained for reference.
         /// </summary>
         /// <param name="sourceUrl"></param>
         /// <returns></returns>

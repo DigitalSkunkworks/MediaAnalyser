@@ -1,13 +1,14 @@
 ﻿///
 /// File: AzureBlobManagement.cs
 /// 
-/// AzureBlobManagement for Blob objects.
+/// AzureBlobManagement for Block Blob objects.
 ///
 
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace VisionProcessor
@@ -24,26 +25,56 @@ namespace VisionProcessor
         }
 
         // methods
-        public static async Task<Boolean> AddBlockBlobMetadataAsync(CloudBlockBlob blockBlob, TraceWriter _log)
+        /// <summary>
+        /// Method gets Cloud Block Blob Metadata.
+        /// </summary>
+        public static async Task<Boolean> GetBlockBlobMetadataAsync(CloudBlockBlob blockBlob, TraceWriter _log)
         {
-            Boolean addBlockBlobMetadataReturnReponse = false;
+            Boolean blobGUIDReturnResponse = false;
+
+            try
+            {
+                // Get the Blob's metadata.
+                await blockBlob.FetchAttributesAsync();
+                if (blockBlob.Metadata["GUID"] != null)
+                {
+                    _log.Info($"GUID Already Set.");
+                    blobGUIDReturnResponse = true;
+                }
+            }
+            catch (KeyNotFoundException)
+            {
+                // captures value missing from Block Blob metadata;
+            }
+
+            catch (StorageException se)
+            {
+                _log.Error($"Metadata fetch failed: {se.Message}");
+            }
+            return blobGUIDReturnResponse;
+        }
+
+        /// <summary>
+        /// Method sets Cloud Block Blob Metadata.
+        /// </summary>
+        public static async Task<string> SetBlockBlobMetadataAsync(CloudBlockBlob blockBlob, TraceWriter _log)
+        {
             string blobGUID = Guid.NewGuid().ToString();
 
             try
             {
-                // Add some metadata to the block blob.
+                // Add some metadata to the Block Blob.
                 blockBlob.Metadata["GUID"] = blobGUID;
 
-                // Set the container's metadata.
+                // Set the Block Blob's metadata.
                 await blockBlob.SetMetadataAsync();
-                addBlockBlobMetadataReturnReponse = true;
                 _log.Info($"Add Block Blob Storage metadata.");
             }
             catch (StorageException se)
             {
                 _log.Error($"Metadata upload failed: {se.Message}");
             }
-            return addBlockBlobMetadataReturnReponse;
+            return blobGUID;
         }
     }
 }
