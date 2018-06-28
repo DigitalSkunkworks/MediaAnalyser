@@ -11,7 +11,7 @@ namespace VisionProcessor
         /// <summary>
         /// Indicates the overall success state of processing an image.
         /// </summary>
-        protected internal enum status { PROCESS_SUCCESS=0, PROCESS_FAIL, URL_NOT_FOUND };
+        protected internal enum Status { PROCESS_SUCCESS=0, PROCESS_FAIL, URL_NOT_FOUND };
 
         // attributes
         /// <summary>
@@ -54,7 +54,13 @@ namespace VisionProcessor
         /// _description
         /// The description given toi the BLOB image.
         /// </summary>
-        protected internal string           _description { get; set; }  = "";
+        protected internal string _description { get; set; } = "";
+
+        /// <summary>
+        /// _locale
+        /// The locale assigned by the analysis process to the text content from the BLOB image.
+        /// </summary>
+        protected internal string _locale { get; set; } = "";
 
         /// <summary>
         /// _jsonData

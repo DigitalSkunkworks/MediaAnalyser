@@ -29,13 +29,35 @@ namespace VisionProcessor
         /// AnalysisMethod
         /// List of methods that are exposed by the GCAPI and some additional values that extend that for additional functionality.
         /// </summary>
-        public enum AnalysisMethod { DETECT_FACES = 0, DETECT_LANDMARKS, DETECT_LABELS, DETECT_SAFESEARCH, DETECT_PROPERTIES, DETECT_TEXT, DETECT_LOGOS, DETECT_CROPHINT, DETECT_WEB, DETECT_DOCTEXT, DETECT_ALL, DETECT_NONE };
+        public enum AnalysisMethod { DETECT_FACES = 0
+                                    , DETECT_LANDMARKS
+                                    , DETECT_LABELS
+                                    , DETECT_SAFESEARCH
+                                    , DETECT_PROPERTIES
+                                    , DETECT_TEXT
+                                    , DETECT_LOGOS
+                                    , DETECT_CROPHINT
+                                    , DETECT_WEB
+                                    , DETECT_DOCTEXT
+                                    , DETECT_ALL
+                                    , DETECT_NONE };
 
         /// <summary>
         /// DetectFunctionNames
         /// Set of strings that may be inserted into the logs when a method name is required.
         /// </summary>
-        private string[] DetectFunctionNames = { "DETECT_FACES", "DETECT_LANDMARKS", "DETECT_LABELS", "DETECT_SAFESEARCH", "DETECT_PROPERTIES", "DETECT_TEXT", "DETECT_LOGOS", "DETECT_CROPHINT", "DETECT_WEB", "DETECT_DOCTEXT", "DETECT_ALL", "DETECT_NONE"};
+        private static readonly string[] DetectFunctionNames = {  "DETECT_FACES"
+                                                                , "DETECT_LANDMARKS"
+                                                                , "DETECT_LABELS"
+                                                                , "DETECT_SAFESEARCH"
+                                                                , "DETECT_PROPERTIES"
+                                                                , "DETECT_TEXT"
+                                                                , "DETECT_LOGOS"
+                                                                , "DETECT_CROPHINT"
+                                                                , "DETECT_WEB"
+                                                                , "DETECT_DOCTEXT"
+                                                                , "DETECT_ALL"
+                                                                , "DETECT_NONE"};
 
         /// <summary>
         /// _log
@@ -118,9 +140,10 @@ namespace VisionProcessor
 
             StringBuilder   sb      = new StringBuilder();
             StringWriter    sw      = new StringWriter(sb);
-            JsonWriter      writer  = new JsonTextWriter(sw);
-
-            writer.Formatting = Formatting.Indented;
+            JsonWriter writer = new JsonTextWriter(sw)
+            {
+                Formatting = Formatting.Indented
+            };
 
             // Parse the JSON remaining in the message stripping some elements. 
             while (reader.Read())
@@ -291,19 +314,22 @@ namespace VisionProcessor
         {
             try
             {
-                _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString(), true);        // IReadOnlyCollection<EntityAnnotation>
+                _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_TEXT ).ToString(), true );            // TextAnnotation
                 await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
-                _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_DOCTEXT).Text);                     // TextAnnotation
+                _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString(), true );          // IReadOnlyCollection<EntityAnnotation>
                 await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
-                _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString(), true);      // IReadOnlyCollection<EntityAnnotation>
+                _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_DOCTEXT ).Text );                       // TextAnnotation
                 await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
- //           _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS ).ToString(), true);          // IReadOnlyCollection<EntityAnnotation>
+                _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LANDMARKS ).ToString(), true );        // IReadOnlyCollection<EntityAnnotation>
+                await AzureImageAnalyser.AddToQueue( _jsonData, _log);
+
+ //           _jsonData = TrimJSON( ApplyAnalysis(AnalysisMethod.DETECT_LOGOS ).ToString(), true );              // IReadOnlyCollection<EntityAnnotation>
  //           await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
-                _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString(), true);                 // WebDetection
+                _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_WEB ).ToString(), true );             // WebDetection
                 await AzureImageAnalyser.AddToQueue( _jsonData, _log);
             }
             catch (Exception ex)

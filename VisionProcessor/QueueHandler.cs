@@ -11,11 +11,11 @@ namespace VisionProcessor
     /// </summary>
     public abstract class QueueHandler
     {
-        protected internal enum status { PROCESS_SUCCESS = 0, PROCESS_FAIL };
+        protected internal enum Status { PROCESS_SUCCESS = 0, PROCESS_FAIL };
 
         // attributes
         /// <summary>
-        /// Connection string to access storage acount.
+        /// Connection string to access storage account.
         /// </summary>
         protected internal string _queueConnectionString { get; set; } = "";
 
