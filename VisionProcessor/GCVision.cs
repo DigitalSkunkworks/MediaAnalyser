@@ -118,6 +118,7 @@ namespace VisionProcessor
             // the following Jfunctions
             if (_detectFunctionId == AnalysisMethod.DETECT_LABELS 
                 || _detectFunctionId == AnalysisMethod.DETECT_LANDMARKS 
+                || _detectFunctionId == AnalysisMethod.DETECT_TEXT
                 || _detectFunctionId == AnalysisMethod.DETECT_LOGOS)
             {
                 rawJSON = rawJSON.Insert( 0, "{");
@@ -151,6 +152,7 @@ namespace VisionProcessor
                 // strip elements from returned JSON data
                 if (reader.TokenType == JsonToken.PropertyName && true == stripJSON)
                 {
+                    // need only the locale from here
                     if (((string.Equals("mid", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase)) ||
                         (string.Equals("Topicality", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase))) ||
                         (string.Equals("entityId", reader.Value.ToString(), StringComparison.OrdinalIgnoreCase) && _detectFunctionId == AnalysisMethod.DETECT_WEB))
@@ -204,6 +206,8 @@ namespace VisionProcessor
                         writer.WriteValue(_APIDateProcessed);
                         writer.WritePropertyName("APIFunction");
                         writer.WriteValue(DetectFunctionNames[(int)_detectFunctionId]);
+                        writer.WritePropertyName("Locale");
+                        writer.WriteValue(_locale);
                         parentStartFound = true;
                     }
                 }
@@ -315,8 +319,11 @@ namespace VisionProcessor
         {
             try
             {
+                // only execute this function to get the locale.
                 _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_TEXT ).ToString(), true );            // TextAnnotation
-                await AzureImageAnalyser.AddToQueue( _jsonData, _log);
+                dynamic results = JsonConvert.DeserializeObject<dynamic>(_jsonData);
+                _locale = results.LabelAnnotations[0].locale;
+//                await AzureImageAnalyser.AddToQueue( _jsonData, _log);
 
                 _jsonData = TrimJSON( ApplyAnalysis( AnalysisMethod.DETECT_LABELS ).ToString(), true );          // IReadOnlyCollection<EntityAnnotation>
                 await AzureImageAnalyser.AddToQueue( _jsonData, _log);
